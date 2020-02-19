@@ -1216,7 +1216,6 @@
 /area/map_template/skipjack_station/start)
 "cL" = (
 /obj/structure/bed/chair/shuttle{
-	tag = "icon-shuttle_chair_preview (WEST)";
 	dir = 8
 	},
 /turf/simulated/floor/shuttle/red,

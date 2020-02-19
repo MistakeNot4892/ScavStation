@@ -1998,14 +1998,6 @@
 /obj/structure/closet{
 	name = "insignias closet"
 	},
-/obj/item/clothing/accessory/solgov/department/engineering/fleet,
-/obj/item/clothing/accessory/solgov/department/engineering/fleet,
-/obj/item/clothing/accessory/solgov/department/engineering/fleet,
-/obj/item/clothing/accessory/solgov/department/engineering/fleet,
-/obj/item/clothing/head/beret/solgov/fleet/engineering,
-/obj/item/clothing/head/beret/solgov/fleet/engineering,
-/obj/item/clothing/head/beret/solgov/fleet/engineering,
-/obj/item/clothing/head/beret/solgov/fleet/engineering,
 /turf/unsimulated/floor{
 	icon_state = "vault";
 	dir = 1
@@ -2679,7 +2671,7 @@
 	},
 /area/map_template/rescue_base/base)
 "eU" = (
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/wall/titanium,
 /area/map_template/rescue_base/start)
 "eV" = (
@@ -2691,7 +2683,7 @@
 	opacity = 0
 	},
 /obj/effect/wallframe_spawn/reinforced/titanium,
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "eW" = (
@@ -2703,7 +2695,7 @@
 	opacity = 0
 	},
 /obj/effect/wallframe_spawn/reinforced/titanium,
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "eX" = (
@@ -2913,7 +2905,7 @@
 /area/map_template/rescue_base/start)
 "fx" = (
 /obj/effect/wallframe_spawn/reinforced/titanium,
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "fy" = (
@@ -2926,7 +2918,7 @@
 "fz" = (
 /obj/machinery/atmospherics/pipe/simple/visible,
 /obj/effect/wallframe_spawn/reinforced/titanium,
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "fA" = (
@@ -2954,7 +2946,7 @@
 	opacity = 0
 	},
 /obj/effect/wallframe_spawn/reinforced/titanium,
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "fD" = (
@@ -3018,7 +3010,7 @@
 	opacity = 0
 	},
 /obj/effect/wallframe_spawn/reinforced/titanium,
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "fK" = (
@@ -3461,7 +3453,7 @@
 	name = "Blast Shutters";
 	opacity = 0
 	},
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "gV" = (
@@ -3515,7 +3507,7 @@
 	name = "Blast Shutters";
 	opacity = 0
 	},
-/obj/effect/paint/hull,
+/obj/effect/paint/blue,
 /turf/simulated/floor/plating,
 /area/map_template/rescue_base/start)
 "hc" = (

@@ -506,7 +506,6 @@
 "pC" = (
 /obj/item/wrench,
 /obj/structure/handrai{
-	tag = "icon-handrail (EAST)";
 	icon_state = "handrail";
 	dir = 4
 	},
@@ -595,7 +594,6 @@
 /area/ship/scrap/bridge_unused)
 "vi" = (
 /obj/structure/handrai{
-	tag = "icon-handrail (WEST)";
 	icon_state = "handrail";
 	dir = 8
 	},
@@ -841,7 +839,6 @@
 	dir = 4
 	},
 /obj/structure/handrai{
-	tag = "icon-handrail (EAST)";
 	icon_state = "handrail";
 	dir = 4
 	},
@@ -979,7 +976,6 @@
 	dir = 8
 	},
 /obj/structure/handrai{
-	tag = "icon-handrail (WEST)";
 	icon_state = "handrail";
 	dir = 8
 	},
@@ -1287,7 +1283,6 @@
 /area/space)
 "Zx" = (
 /obj/structure/handrai{
-	tag = "icon-handrail (EAST)";
 	icon_state = "handrail";
 	dir = 4
 	},

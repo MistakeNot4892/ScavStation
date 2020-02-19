@@ -1,4 +1,4 @@
-#if !defined(using_map_DATUM)
+#if !defined(USING_MAP_DATUM)
 
 	#define SPECIES_BAXXID           "Baxxid"
 	#define SPECIES_YINGLET          "Yinglet"
@@ -46,7 +46,7 @@
 	#include "tradeship-2.dmm"
 	#include "tradeship-3.dmm"
 
-	#define using_map_DATUM /datum/map/tradeship
+	#define USING_MAP_DATUM /datum/map/tradeship
 
 #elif !defined(MAP_OVERRIDE)
 

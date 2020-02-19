@@ -15,6 +15,12 @@
 	name = "hull"
 	color = COLOR_HULL
 
+/turf/simulated/wall/false
+	can_open = 1
+
+/turf/simulated/wall/r_wall/false
+	can_open = 1
+
 /turf/simulated/wall/prepainted
 	paint_color = COLOR_WALL_GUNMETAL
 /turf/simulated/wall/r_wall/prepainted

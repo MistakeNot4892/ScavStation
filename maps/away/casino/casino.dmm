@@ -209,7 +209,7 @@
 /area/casino/casino_bridge)
 "aF" = (
 /obj/structure/bed/chair{
-	dir = 4;
+	dir = 4
 	},
 /obj/effect/decal/cleanable/blood/splatter,
 /turf/simulated/floor/tiled,
@@ -1083,7 +1083,7 @@
 /area/casino/casino_security)
 "cS" = (
 /obj/structure/bed/chair{
-	dir = 4;
+	dir = 4
 	},
 /obj/effect/decal/cleanable/blood,
 /turf/simulated/floor/tiled,
@@ -5494,7 +5494,7 @@
 /area/casino/casino_mainfloor)
 "Fb" = (
 /obj/structure/bed/chair{
-	dir = 4;
+	dir = 4
 	},
 /obj/effect/decal/cleanable/blood,
 /obj/structure/cable{
