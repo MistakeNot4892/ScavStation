@@ -18,5 +18,5 @@
 	var/center = get_turf(origin)
 	if(!center)
 		return
-	for(var/turf/T in trange(range, center))
+	for(var/turf/T in RANGE_TURFS(center, range))
 		. += T

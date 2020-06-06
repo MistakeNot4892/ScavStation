@@ -26,5 +26,5 @@
 		if(M.anchored)
 			return
 		spark_at(get_turf(M))
-		M.forceMove(pick(trange(effect_range * 2, get_turf(holder))))
+		M.forceMove(pick(RANGE_TURFS(get_turf(holder), effect_range * 2)))
 		spark_at(get_turf(M))
