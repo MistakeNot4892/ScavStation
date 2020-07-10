@@ -53,13 +53,13 @@
 		return
 
 	//Using prints from severed hand items!
-	var/obj/item/organ/external/E = M.get_active_hand()
+	var/obj/item/organ/external/E = M.get_active_held_item()
 	if(istype(E) && E.get_fingerprint())
 		full_print = E.get_fingerprint()
 		ignore_gloves = 1
 
 	if(!ignore_gloves)
-		var/obj/item/cover = M.get_covering_equipped_item(M.hand ? HAND_LEFT : HAND_RIGHT)
+		var/obj/item/cover = M.get_covering_equipped_item(M.get_active_held_item_slot())
 		if(cover)
 			cover.add_fingerprint(M, 1)
 			return
@@ -91,6 +91,6 @@
 	if(!..())
 		return FALSE
 
-	var/obj/item/organ/external/E = organs_by_name[hand ? BP_L_HAND : BP_R_HAND]
+	var/obj/item/organ/external/E = organs_by_name[get_active_held_item_slot()]
 	if(E)
 		return E.get_fingerprint()

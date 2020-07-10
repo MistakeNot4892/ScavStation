@@ -33,7 +33,7 @@
 /client/proc/diagonal_action(direction)
 	switch(client_dir(direction, 1))
 		if(NORTHEAST)
-			swap_hand()
+			cycle_held_item_slot()
 			return
 		if(SOUTHEAST)
 			attack_self()
@@ -56,16 +56,17 @@
 		drop_item()
 
 /mob/living/carbon/hotkey_drop()
-	var/obj/item/hand = get_active_hand()
+	var/obj/item/hand = get_active_held_item()
 	if(!hand)
 		to_chat(src, "<span class='warning'>You have nothing to drop in your hand.</span>")
 	else if(hand.can_be_dropped_by_client(src))
 		drop_item()
 
-/client/verb/swap_hand()
+/client/verb/cycle_held_item_slot()
 	set hidden = 1
 	if(istype(mob, /mob/living/carbon))
-		mob:swap_hand()
+		var/mob/M = mob
+		M.cycle_held_item_slot()
 	if(istype(mob,/mob/living/silicon/robot))
 		var/mob/living/silicon/robot/R = mob
 		R.cycle_modules()
@@ -89,7 +90,7 @@
 /client/verb/drop_item()
 	set hidden = 1
 	if(!isrobot(mob) && mob.stat == CONSCIOUS && isturf(mob.loc))
-		var/obj/item/I = mob.get_active_hand()
+		var/obj/item/I = mob.get_active_held_item()
 		if(I && I.can_be_dropped_by_client(mob))
 			mob.drop_item()
 

@@ -228,7 +228,7 @@
 		var/t = sanitizeSafe(input(user, "Enter the ID for the window.", src.name, null), MAX_NAME_LEN)
 		if(user.incapacitated() || !user.Adjacent(src))
 			return
-		if (user.get_active_hand() != W)
+		if (user.get_active_held_item() != W)
 			return
 		if (t)
 			src.id = t
@@ -248,7 +248,7 @@
 	else
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
 		if(W.damtype == BRUTE || W.damtype == BURN)
-			user.do_attack_animation(src)
+			user.do_attack_animation(src, W)
 			hit(W.force)
 			if(health <= 7)
 				set_anchored(FALSE)

@@ -197,6 +197,7 @@
 
 	var/list/skin_overlays = list()
 
+	var/list/limb_mapping
 	var/list/has_limbs = list(
 		BP_CHEST =  list("path" = /obj/item/organ/external/chest),
 		BP_GROIN =  list("path" = /obj/item/organ/external/groin),
@@ -209,7 +210,7 @@
 		BP_R_HAND = list("path" = /obj/item/organ/external/hand/right),
 		BP_L_FOOT = list("path" = /obj/item/organ/external/foot),
 		BP_R_FOOT = list("path" = /obj/item/organ/external/foot/right)
-		)
+	)
 
 	var/list/override_limb_types // Used for species that only need to change one or two entries in has_limbs.
 
@@ -342,18 +343,24 @@ The slots that you can use are found in items_clothing.dm and are the inventory 
 			has_limbs[ltag] = list("path" = override_limb_types[ltag])
 
 	//Build organ descriptors
+	LAZYINITLIST(limb_mapping)
 	for(var/limb_type in has_limbs)
 		var/list/organ_data = has_limbs[limb_type]
 		var/obj/item/organ/limb_path = organ_data["path"]
 		organ_data["descriptor"] = initial(limb_path.name)
+		LAZYDISTINCTADD(limb_mapping[limb_type], limb_type)
 
 /datum/species/proc/equip_survival_gear(var/mob/living/carbon/human/H,var/extendedtank = 1)
 	if(istype(H.get_equipped_item(slot_back), /obj/item/storage/backpack))
-		if (extendedtank)	H.equip_to_slot_or_del(new /obj/item/storage/box/engineer(H.back), slot_in_backpack)
-		else	H.equip_to_slot_or_del(new /obj/item/storage/box/survival(H.back), slot_in_backpack)
+		if (extendedtank)
+			H.equip_to_slot_or_del(new /obj/item/storage/box/engineer(H.back), slot_in_backpack)
+		else
+			H.equip_to_slot_or_del(new /obj/item/storage/box/survival(H.back), slot_in_backpack)
 	else
-		if (extendedtank)	H.equip_to_slot_or_del(new /obj/item/storage/box/engineer(H), slot_r_hand)
-		else	H.equip_to_slot_or_del(new /obj/item/storage/box/survival(H), slot_r_hand)
+		if (extendedtank)
+			H.put_in_hands_or_del(new /obj/item/storage/box/engineer(H))
+		else
+			H.put_in_hands_or_del(new /obj/item/storage/box/survival(H))
 
 /datum/species/proc/get_manual_dexterity(var/mob/living/carbon/human/H)
 	. = manual_dexterity
@@ -624,7 +631,9 @@ The slots that you can use are found in items_clothing.dm and are the inventory 
 		target.w_uniform.add_fingerprint(attacker)
 	var/obj/item/organ/external/affecting = target.get_organ(ran_zone(attacker.zone_sel.selecting))
 
-	var/list/holding = list(target.get_active_hand() = 60, target.get_inactive_hand() = 30)
+	var/list/holding = list(target.get_active_held_item() = 60)
+	for(var/thing in target.get_inactive_held_items())
+		holding[thing] = 30
 
 	var/skill_mod = 10 * attacker.get_skill_difference(SKILL_COMBAT, target)
 	var/state_mod = attacker.melee_accuracy_mods() - target.melee_accuracy_mods()

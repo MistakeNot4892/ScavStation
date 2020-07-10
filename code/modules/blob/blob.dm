@@ -159,7 +159,7 @@
 
 /obj/effect/blob/attackby(var/obj/item/W, var/mob/user)
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	user.do_attack_animation(src)
+	user.do_attack_animation(src, W)
 	playsound(loc, 'sound/effects/attackblob.ogg', 50, 1)
 	if(isWirecutter(W))
 		if(prob(user.skill_fail_chance(SKILL_SCIENCE, 90, SKILL_EXPERT)))

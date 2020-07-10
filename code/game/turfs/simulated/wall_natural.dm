@@ -167,7 +167,7 @@ var/list/natural_walls = list()
 	. = ..()
 	if(ismob(AM))
 		var/mob/M = AM
-		var/obj/item/pickaxe/held = M.get_active_hand()
+		var/obj/item/pickaxe/held = M.get_active_held_item()
 		if(istype(held))
 			attackby(held, M)
 

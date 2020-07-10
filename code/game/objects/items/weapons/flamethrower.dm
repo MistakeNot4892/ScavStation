@@ -31,16 +31,9 @@
 /obj/item/flamethrower/Process()
 	if(!lit)
 		STOP_PROCESSING(SSobj, src)
-		return null
-	var/turf/location = loc
-	if(istype(location, /mob/))
-		var/mob/M = location
-		if(M.l_hand == src || M.r_hand == src)
-			location = M.loc
-	if(isturf(location)) //start a fire if possible
-		location.hotspot_expose(700, 2)
-	return
-
+	else
+		var/turf/location = get_turf(src)
+		location?.hotspot_expose(700, 2)
 
 /obj/item/flamethrower/on_update_icon()
 	overlays.Cut()
@@ -60,7 +53,7 @@
 
 /obj/item/flamethrower/afterattack(atom/target, mob/user, proximity)
 	// Make sure our user is still holding us
-	if(user && user.get_active_hand() == src)
+	if(user && user.get_active_held_item() == src)
 		if(user.a_intent == I_HELP) //don't shoot if we're on help intent
 			to_chat(user, "<span class='warning'>You refrain from firing \the [src] as your intent is set to help.</span>")
 			return

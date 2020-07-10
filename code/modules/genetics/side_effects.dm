@@ -40,7 +40,7 @@
 
 /datum/genetics/side_effect/genetic_burn/finish(mob/living/carbon/human/H)
 	if(!H.reagents.has_reagent(/decl/material/liquid/oxy_meds))
-		for(var/organ_name in BP_ALL_LIMBS)
+		for(var/organ_name in global.all_limb_tags)
 			var/obj/item/organ/external/E = H.get_organ(organ_name)
 			E.take_external_damage(0, 5, 0)
 
@@ -55,7 +55,7 @@
 	H.visible_message("<B>\The [H]</B>'s limbs start shivering uncontrollably.")
 /datum/genetics/side_effect/bone_snap/finish(mob/living/carbon/human/H)
 	if(!H.reagents.has_reagent(/decl/material/liquid/brute_meds))
-		var/organ_name = pick(BP_ALL_LIMBS)
+		var/organ_name = pick(global.all_limb_tags)
 		var/obj/item/organ/external/E = H.get_organ(organ_name)
 		E.take_external_damage(20, 0, 0)
 		E.fracture()

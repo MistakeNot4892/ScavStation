@@ -83,7 +83,7 @@ avoid code duplication. This includes items that may sometimes act as a standard
 		admin_attack_log(user, M, "Attacked using \a [src] (DAMTYE: [uppertext(damtype)])", "Was attacked with \a [src] (DAMTYE: [uppertext(damtype)])", "used \a [src] (DAMTYE: [uppertext(damtype)]) to attack")
 	/////////////////////////
 	user.setClickCooldown(attack_cooldown + w_class)
-	user.do_attack_animation(M)
+	user.do_attack_animation(M, src)
 	if(!user.aura_check(AURA_TYPE_WEAPON, src, user))
 		return 0
 

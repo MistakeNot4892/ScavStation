@@ -95,7 +95,7 @@
 		return TRUE
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		var/obj/item/hand = H.hand ? H.organs_by_name[BP_L_HAND] : H.organs_by_name[BP_R_HAND]
+		var/obj/item/hand = H.organs_by_name[H.get_active_held_item_slot()]
 		if(hand && try_graffiti(H, hand))
 			return TRUE
 	. = ..()
@@ -330,7 +330,7 @@
 					playsound(src, 'sound/items/Crowbar.ogg', 100, 1)
 					. = TRUE
 					if(!do_after(user,100,src) || !istype(src, /turf/simulated/wall) || !user || !W || !T )	return
-					if(user.loc == T && user.get_active_hand() == W )
+					if(user.loc == T && user.get_active_held_item() == W )
 						to_chat(user, "<span class='notice'>You pry off the outer sheath.</span>")
 						dismantle_wall()
 					return

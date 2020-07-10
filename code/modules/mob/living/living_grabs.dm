@@ -1,5 +1,5 @@
 /mob/living/proc/can_grab(var/atom/movable/target, var/target_zone)
-	if(get_active_hand())
+	if(get_active_held_item())
 		to_chat(src, SPAN_WARNING("Your hand is full!"))
 		return FALSE
 	if(LAZYLEN(grabbed_by))
