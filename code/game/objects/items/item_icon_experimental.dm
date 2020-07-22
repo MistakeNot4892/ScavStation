@@ -97,7 +97,7 @@ var/list/bodypart_to_slot_lookup_table = list(
 /obj/item/proc/apply_offsets(var/mob/user_mob, var/bodytype,  var/image/overlay, var/slot, var/bodypart)
 	if(ishuman(user_mob))
 		var/mob/living/carbon/human/H = user_mob
-		if(H.species.get_bodytype(H) != bodytype)
+		if(lowertext(H.species.get_bodytype(H)) != bodytype)
 			overlay = H.species.get_offset_overlay_image(FALSE, overlay.icon, overlay.icon_state, color, bodypart || slot)
 	. = overlay
 
