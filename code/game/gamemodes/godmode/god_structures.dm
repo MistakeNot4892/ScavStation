@@ -42,7 +42,7 @@
 
 /obj/structure/deity/attackby(obj/item/W, mob/user)
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	user.do_attack_animation(src)
+	user.do_attack_animation(src, W)
 	playsound(get_turf(src), 'sound/effects/Glasshit.ogg', 50, 1)
 	user.visible_message(
 		"<span class='danger'>[user] hits \the [src] with \the [W]!</span>",

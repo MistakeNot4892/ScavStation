@@ -174,7 +174,7 @@
 		//Adding things to inventory
 		if(href_list["add_inv"])
 			var/add_to = href_list["add_inv"]
-			if(!user.get_active_hand())
+			if(!user.get_active_held_item())
 				to_chat(user, "<span class='warning'>You have nothing in your hand to put on its [add_to].</span>")
 				return TOPIC_HANDLED
 			switch(add_to)
@@ -183,7 +183,7 @@
 						to_chat(user, "<span class='warning'>It's already wearing something.</span>")
 						return TOPIC_HANDLED
 					else
-						var/obj/item/item_to_add = usr.get_active_hand()
+						var/obj/item/item_to_add = usr.get_active_held_item()
 						if(!item_to_add)
 							return TOPIC_HANDLED
 
@@ -519,8 +519,10 @@
 
 		if(iscarbon(AM))
 			var/mob/living/carbon/C = AM
-			if((C.l_hand && can_pick_up(C.l_hand)) || (C.r_hand && can_pick_up(C.r_hand)))
-				return C
+			for(var/bp in C.held_item_slots)
+				var/datum/inventory_slot/inv_slot = C.held_item_slots[bp]
+				if(inv_slot?.holding && can_pick_up(inv_slot.holding))
+					return C
 	return null
 
 /mob/living/simple_animal/hostile/retaliate/parrot/proc/search_for_perch()
@@ -546,14 +548,16 @@
 
 		if(iscarbon(AM))
 			var/mob/living/carbon/C = AM
-			if((C.l_hand && can_pick_up(C.l_hand)) || (C.r_hand && can_pick_up(C.r_hand)))
-				return C
+			for(var/bp in C.held_item_slots)
+				var/datum/inventory_slot/inv_slot = C.held_item_slots[bp]
+				if(inv_slot?.holding && can_pick_up(inv_slot.holding))
+					return C
 	return null
 
 /mob/living/simple_animal/hostile/retaliate/parrot/proc/give_up()
 	enemies = list()
 	LoseTarget()
-	visible_message("<span class='notice'>\The [src] seems to calm down.</span>")
+	visible_message(SPAN_NOTICE("\The [src] seems to calm down."))
 	relax_chance -= impatience
 
 /*
@@ -600,14 +604,11 @@
 		return 1
 
 	var/obj/item/stolen_item = null
-
 	for(var/mob/living/carbon/C in view(1,src))
-		if(C.l_hand && can_pick_up(C.l_hand))
-			stolen_item = C.l_hand
-
-		if(C.r_hand && can_pick_up(C.r_hand))
-			stolen_item = C.r_hand
-
+		for(var/obj/item/thing in C.get_held_items())
+			if(can_pick_up(thing))
+				stolen_item = thing
+				break
 		if(stolen_item && C.unEquip(stolen_item, src))
 			held_item = stolen_item
 			visible_message("[src] grabs the [held_item] out of [C]'s hand!", "<span class='warning'>You snag the [held_item] out of [C]'s hand!</span>", "You hear the sounds of wings flapping furiously.")

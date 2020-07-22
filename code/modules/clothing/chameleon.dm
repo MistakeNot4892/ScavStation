@@ -113,8 +113,8 @@
 
 /obj/item/clothing/suit/chameleon
 	name = "armor"
-	icon_state = "armor"
-	item_state = "armor"
+
+	item_state = 'icons/clothing/suit/armor/vest.dmi'
 	desc = "It appears to be a vest of standard armor, except this is embedded with a hidden holographic cloaker, allowing it to change it's appearance, but offering no protection.. It seems to have a small dial inside."
 	origin_tech = "{'esoteric':3}"
 	item_flags = ITEM_FLAG_INVALID_FOR_CHAMELEON
@@ -438,5 +438,4 @@
 	//so our overlays update.
 	if (ismob(src.loc))
 		var/mob/M = src.loc
-		M.update_inv_r_hand()
-		M.update_inv_l_hand()
+		M.update_inv_hands()

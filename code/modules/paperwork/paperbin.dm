@@ -16,12 +16,9 @@
 /obj/item/paper_bin/MouseDrop(mob/user)
 	if((user == usr && (!( usr.restrained() ) && (!( usr.stat ) && (usr.contents.Find(src) || in_range(src, usr))))))
 		if(!istype(usr, /mob/living/carbon/slime) && !istype(usr, /mob/living/simple_animal))
-			if( !usr.get_active_hand() )		//if active hand is empty
+			if( !usr.get_active_held_item() )		//if active hand is empty
 				var/mob/living/carbon/human/H = user
-				var/obj/item/organ/external/temp = H.organs_by_name[BP_R_HAND]
-
-				if (H.hand)
-					temp = H.organs_by_name[BP_L_HAND]
+				var/obj/item/organ/external/temp = H.organs_by_name[H.get_active_held_item_slot()]
 				if(temp && !temp.is_usable())
 					to_chat(user, "<span class='notice'>You try to move your [temp.name], but cannot!</span>")
 					return
@@ -34,9 +31,7 @@
 /obj/item/paper_bin/attack_hand(mob/user)
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		var/obj/item/organ/external/temp = H.organs_by_name[BP_R_HAND]
-		if (H.hand)
-			temp = H.organs_by_name[BP_L_HAND]
+		var/obj/item/organ/external/temp = H.organs_by_name[H.get_active_held_item_slot()]
 		if(temp && !temp.is_usable())
 			to_chat(user, "<span class='notice'>You try to move your [temp.name], but cannot!</span>")
 			return

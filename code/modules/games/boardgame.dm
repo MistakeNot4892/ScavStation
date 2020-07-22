@@ -134,7 +134,7 @@ obj/item/board/attackby(obj/item/I, mob/user)
 					var/mob/living/carbon/human/H = locate(href_list["person"])
 					if(!istype(H))
 						return
-					var/obj/item/O = H.get_active_hand()
+					var/obj/item/O = H.get_active_held_item()
 					if(!O)
 						return
 					addPiece(O,H,text2num(s))

@@ -42,21 +42,17 @@
 			src.open(usr)
 			return TRUE
 
-		if (!( istype(over_object, /obj/screen) ))
+		if (!( istype(over_object, /obj/screen/inventory) ))
 			return ..()
 
 		//makes sure that the storage is equipped, so that we can't drag it into our hand from miles away.
 		if (!usr.contains(src))
 			return
 
+		var/obj/screen/inventory/inv = over_object
 		src.add_fingerprint(usr)
 		if(usr.unEquip(src))
-			switch(over_object.name)
-				if(BP_R_HAND)
-					usr.put_in_r_hand(src)
-				if(BP_L_HAND)
-					usr.put_in_l_hand(src)
-
+			usr.equip_to_slot_if_possible(src, inv.slot_id)
 
 /obj/item/storage/proc/return_inv()
 
@@ -264,7 +260,7 @@
 	if (.) //if the item was used as a crafting component, just return
 		return
 
-	if(isrobot(user) && (W == user.get_active_hand()))
+	if(isrobot(user) && (W == user.get_active_held_item()))
 		return //Robots can't store their modules.
 
 	if(!can_be_inserted(W, user))
@@ -276,11 +272,11 @@
 /obj/item/storage/attack_hand(mob/user)
 	if(ishuman(user))
 		var/mob/living/carbon/human/H = user
-		if(H.l_store == src && !H.get_active_hand())	//Prevents opening if it's in a pocket.
+		if(H.l_store == src && !H.get_active_held_item())	//Prevents opening if it's in a pocket.
 			H.put_in_hands(src)
 			H.l_store = null
 			return
-		if(H.r_store == src && !H.get_active_hand())
+		if(H.r_store == src && !H.get_active_held_item())
 			H.put_in_hands(src)
 			H.r_store = null
 			return
@@ -376,7 +372,7 @@
 
 /obj/item/storage/attack_self(mob/user)
 	//Clicking on itself will empty it, if it has the verb to do that.
-	if(user.get_active_hand() == src)
+	if(user.get_active_held_item() == src)
 		if(src.verbs.Find(/obj/item/storage/verb/quick_empty))
 			src.quick_empty()
 			return 1

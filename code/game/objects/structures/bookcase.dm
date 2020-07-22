@@ -47,7 +47,7 @@ GLOBAL_LIST_INIT(station_bookcases, new)
 			if(!CanPhysicallyInteract(user))
 				return
 			if(ishuman(user))
-				if(!user.get_active_hand())
+				if(!user.get_active_held_item())
 					user.put_in_hands(choice)
 			else
 				choice.dropInto(loc)

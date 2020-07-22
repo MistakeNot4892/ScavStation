@@ -162,7 +162,7 @@
 			if(computer.get_inserted_id())
 				card_slot.eject_id(user)
 			else
-				card_slot.insert_id(user.get_active_hand(), user)
+				card_slot.insert_id(user.get_active_held_item(), user)
 		if("terminate")
 			if(!authorized(user_id_card))
 				to_chat(usr, "<span class='warning'>Access denied.</span>")

@@ -3,7 +3,6 @@
 	name = "void helmet"
 	desc = "A high-tech dark red space suit helmet. Used for AI satellite maintenance."
 	icon = 'icons/clothing/spacesuit/void/nasa/helmet.dmi'
-	icon_state = ICON_STATE_WORLD
 
 	heat_protection = HEAD
 	armor = list(
@@ -23,7 +22,6 @@
 /obj/item/clothing/suit/space/void
 	name = "voidsuit"
 	icon = 'icons/clothing/spacesuit/void/nasa/suit.dmi'
-	icon_state = ICON_STATE_WORLD
 	item_state_slots = null
 	w_class = ITEM_SIZE_HUGE//bulky item
 	desc = "A high-tech dark red space suit. Used for AI satellite maintenance."
@@ -198,8 +196,8 @@ else if(##equipment_var) {\
 	if(!istype(H)) return
 	if(H.incapacitated()) return
 	var/slot = H.get_inventory_slot(src)
-	if(slot != slot_wear_suit && slot != slot_l_hand && slot != slot_r_hand) return// let them eject those tanks when they're in hand or stuff for ease of use
-
+	if(slot != slot_wear_suit && !(slot in H.held_item_slots))
+		return// let them eject those tanks when they're in hand or stuff for ease of use
 
 	to_chat(H, "<span class='info'>You press the emergency release, ejecting \the [tank] from your suit.</span>")
 	tank.canremove = 1
@@ -285,7 +283,7 @@ else if(##equipment_var) {\
 /obj/item/clothing/suit/space/void/attack_self() //sole purpose of existence is to toggle the helmet
 	toggle_helmet()
 
-/obj/item/clothing/suit/space/void/get_mob_overlay(mob/user_mob, slot)
+/obj/item/clothing/suit/space/void/get_mob_overlay(mob/user_mob, slot, bodypart)
 	var/image/ret = ..()
 	if(tank && slot == slot_back)
 		ret.overlays += tank.get_mob_overlay(user_mob, slot_back_str)

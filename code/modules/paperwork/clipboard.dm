@@ -25,20 +25,14 @@
 /obj/item/clipboard/MouseDrop(obj/over_object) //Quick clipboard fix. -Agouri
 	if(ishuman(usr))
 		var/mob/M = usr
-		if(!(istype(over_object, /obj/screen) ))
+		if(!(istype(over_object, /obj/screen/inventory) ))
 			return ..()
 
 		if(!M.restrained() && !M.stat)
-			switch(over_object.name)
-				if("r_hand")
-					if(M.unEquip(src))
-						M.put_in_r_hand(src)
-				if("l_hand")
-					if(M.unEquip(src))
-						M.put_in_l_hand(src)
-
-			add_fingerprint(usr)
-			return
+			var/obj/screen/inventory/inv = over_object
+			src.add_fingerprint(M)
+			if(M.unEquip(src))
+				M.equip_to_slot_if_possible(src, inv.slot_id)
 
 /obj/item/clipboard/on_update_icon()
 	..()
@@ -104,7 +98,7 @@
 
 		else if(href_list["addpen"])
 			if(!haspen)
-				var/obj/item/pen/W = usr.get_active_hand()
+				var/obj/item/pen/W = usr.get_active_held_item()
 				if(istype(W, /obj/item/pen))
 					if(!usr.unEquip(W, src))
 						return
@@ -116,7 +110,7 @@
 
 			if(P && (P.loc == src) && istype(P, /obj/item/paper) && (P == toppaper) )
 
-				var/obj/item/I = usr.get_active_hand()
+				var/obj/item/I = usr.get_active_held_item()
 
 				if(istype(I, /obj/item/pen))
 

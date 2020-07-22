@@ -9,7 +9,7 @@
 	if(iscultist(user) || (user.mind in GLOB.godcult.current_antagonists))
 		return ..()
 
-	var/zone = (user.hand ? BP_L_ARM : BP_R_ARM)
+	var/zone = user.get_active_held_item_slot()
 
 	var/obj/item/organ/external/affecting = null
 	if(ishuman(user))
@@ -42,7 +42,7 @@
 /obj/item/clothing/head/culthood
 	name = "cult hood"
 	desc = "A hood worn by the followers of Nar-Sie."
-	icon_state = ICON_STATE_WORLD
+
 	icon = 'icons/clothing/head/cult.dmi'
 	flags_inv = HIDEFACE
 	body_parts_covered = HEAD
@@ -57,7 +57,6 @@
 /obj/item/clothing/head/culthood/magus
 	name = "magus helm"
 	desc = "A helm worn by the followers of Nar-Sie."
-	icon_state = ICON_STATE_WORLD
 	icon = 'icons/clothing/head/wizard/magus.dmi'
 	flags_inv = HIDEFACE | BLOCKHAIR
 	body_parts_covered = HEAD|FACE|EYES

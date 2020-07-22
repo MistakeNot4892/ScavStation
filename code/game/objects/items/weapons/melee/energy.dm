@@ -21,7 +21,7 @@
 
 /obj/item/energy_blade/can_embed()
 	return FALSE
-	
+
 /obj/item/energy_blade/Initialize()
 	. = ..()
 	if(active)
@@ -30,7 +30,7 @@
 	else
 		active = TRUE
 		deactivate()
-		
+
 /obj/item/energy_blade/on_update_icon()
 	. = ..()
 	if(active)
@@ -53,7 +53,7 @@
 		playsound(user, 'sound/weapons/saberon.ogg', 50, 1)
 		to_chat(user, "<span class='notice'>\The [src] is now energised.</span>")
 	set_light(0.8, 1, 2, 4, lighting_color)
-	
+
 /obj/item/energy_blade/proc/deactivate(mob/living/user)
 	if(!active)
 		return
@@ -82,8 +82,7 @@
 
 	if(istype(user,/mob/living/carbon/human))
 		var/mob/living/carbon/human/H = user
-		H.update_inv_l_hand()
-		H.update_inv_r_hand()
+		H.update_inv_hands()
 
 	add_fingerprint(user)
 	return
@@ -209,13 +208,13 @@
 	icon_state = "blade"
 	active_icon = "blade"	//It's all energy, so it should always be visible.
 	lighting_color = COLOR_SABER_GREEN
-	force = 40 //Normal attacks deal very high damage - about the same as wielded fire axe
+	active_force = 40 //Normal attacks deal very high damage - about the same as wielded fire axe
 	active = 1
 	armor_penetration = 100
 	sharp = 1
 	edge = 1
 	anchored = 1    // Never spawned outside of inventory, should be fine.
-	throwforce = 1  //Throwing or dropping the item deletes it.
+	active_throwforce = 1  //Throwing or dropping the item deletes it.
 	throw_speed = 1
 	throw_range = 1
 	w_class = ITEM_SIZE_TINY //technically it's just energy or something, I dunno
@@ -250,7 +249,7 @@
 	QDEL_IN(src, 0)
 
 /obj/item/energy_blade/blade/Process()
-	if(!creator || loc != creator || (creator.l_hand != src && creator.r_hand != src))
+	if(!creator || loc != creator || !(src in creator.get_held_items()))
 		// Tidy up a bit.
 		if(istype(loc,/mob/living))
 			var/mob/living/carbon/human/host = loc

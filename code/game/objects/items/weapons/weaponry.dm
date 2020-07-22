@@ -15,7 +15,7 @@
 	admin_attack_log(user, M, "Attacked using \a [src]", "Was attacked with \a [src]", "used \a [src] to attack")
 
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	user.do_attack_animation(M)
+	user.do_attack_animation(M, src)
 	//if(user != M)
 	if(M.mind && LAZYLEN(M.mind.learned_spells))
 		M.silence_spells(300) //30 seconds

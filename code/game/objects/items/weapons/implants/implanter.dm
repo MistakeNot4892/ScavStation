@@ -76,7 +76,7 @@
 		M.visible_message("<span class='warning'>[user] is attemping to implant [M].</span>")
 
 		user.setClickCooldown(DEFAULT_QUICK_COOLDOWN)
-		user.do_attack_animation(M)
+		user.do_attack_animation(M, src)
 
 		var/target_zone = user.zone_sel.selecting
 		if(src.imp.can_implant(M, user, target_zone))

@@ -279,7 +279,7 @@
 /obj/machinery/door/bash(obj/item/I, mob/user)
 	if(density && user.a_intent == I_HURT && !(I.item_flags & ITEM_FLAG_NO_BLUDGEON))
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-		user.do_attack_animation(src)
+		user.do_attack_animation(src, I)
 		if(I.force < min_force)
 			user.visible_message("<span class='danger'>\The [user] hits \the [src] with \the [I] with no visible effect.</span>")
 		else

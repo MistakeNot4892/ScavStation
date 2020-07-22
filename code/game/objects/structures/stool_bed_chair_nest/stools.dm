@@ -75,7 +75,7 @@
 	if (prob(5))
 		user.visible_message("<span class='danger'>[user] breaks [src] over [target]'s back!</span>")
 		user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-		user.do_attack_animation(target)
+		user.do_attack_animation(target, src)
 		dismantle() //This deletes self.
 
 		var/blocked = target.get_blocked_ratio(hit_zone, BRUTE, damage = 20)

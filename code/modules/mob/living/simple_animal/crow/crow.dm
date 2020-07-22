@@ -90,7 +90,7 @@
 			to_chat(user, "<span class='warning'>There is nothing to remove from \the [src]'s [href_list["remove_inv"]].</span>")
 		return TOPIC_HANDLED
 	if(href_list["add_inv"])
-		var/obj/item/equipping = user.get_active_hand()
+		var/obj/item/equipping = user.get_active_held_item()
 		if(!equipping)
 			to_chat(user, "<span class='warning'>You have nothing in your hand to put on \the [src]'s [href_list["add_inv"]].</span>")
 			return 0

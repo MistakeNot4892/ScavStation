@@ -221,7 +221,7 @@
 /obj/effect/vine/AltClick(var/mob/user)
 	if(!CanPhysicallyInteract(user) || user.incapacitated())
 		return ..()
-	var/obj/item/W = user.get_active_hand()
+	var/obj/item/W = user.get_active_held_item()
 	if(istype(W) && W.edge && W.w_class >= ITEM_SIZE_NORMAL)
 		visible_message(SPAN_NOTICE("[user] starts chopping down \the [src]."))
 		playsound(, W.hitsound, 100, 1)

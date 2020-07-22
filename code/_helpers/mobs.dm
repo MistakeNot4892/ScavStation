@@ -122,7 +122,7 @@ proc/age2agedescription(age)
 
 	var/target_loc = target.loc
 
-	var/holding = user.get_active_hand()
+	var/holding = user.get_active_held_item()
 	var/datum/progressbar/progbar
 	if (progress)
 		progbar = new(user, time, target)
@@ -152,7 +152,7 @@ proc/age2agedescription(age)
 			. = 0
 			break
 
-		if(user.get_active_hand() != holding)
+		if(user.get_active_held_item() != holding)
 			. = 0
 			break
 
@@ -181,7 +181,7 @@ proc/age2agedescription(age)
 	if(!user.Process_Spacemove(0) && user.inertia_dir)
 		drifting = 1
 
-	var/holding = user.get_active_hand()
+	var/holding = user.get_active_held_item()
 
 	var/datum/progressbar/progbar
 	if (progress)
@@ -208,7 +208,7 @@ proc/age2agedescription(age)
 			break
 
 		if(needhand)
-			if(user.get_active_hand() != holding)
+			if(user.get_active_held_item() != holding)
 				. = 0
 				break
 

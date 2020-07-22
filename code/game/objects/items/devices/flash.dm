@@ -64,7 +64,7 @@
 			return 0
 
 	user.setClickCooldown(DEFAULT_ATTACK_COOLDOWN)
-	user.do_attack_animation(M)
+	user.do_attack_animation(M, src)
 
 	playsound(src.loc, 'sound/weapons/flash.ogg', 100, 1)
 	var/flashfail = 0
@@ -86,8 +86,7 @@
 					M.eye_blurry += flash_strength
 					M.confused += (flash_strength + 2)
 					if(flash_strength > 3)
-						M.drop_l_hand()
-						M.drop_r_hand()
+						M.drop_held()
 					if(flash_strength > 5)
 						M.Weaken(2)
 			else

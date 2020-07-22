@@ -10,7 +10,7 @@
 
 // Override for action buttons.
 /obj/item/clothing/attack_self(mob/user)
-	if(loc == user && user.get_active_hand() != src)
+	if(loc == user && user.get_active_held_item() != src)
 		attack_hand(user)
 	else
 		. = ..()
@@ -58,14 +58,14 @@
 	if (usr.incapacitated())
 		return
 
-	if (!usr.unEquip(src))
+	if(!istype(over_object, /obj/screen/inventory))
 		return
 
-	switch(over_object.name)
-		if("r_hand")
-			usr.put_in_r_hand(src)
-		if("l_hand")
-			usr.put_in_l_hand(src)
+	var/obj/screen/inventory/inv = over_object
+	src.add_fingerprint(usr)
+	if(usr.unEquip(src))
+		usr.equip_to_slot_if_possible(src, inv.slot_id)
+
 	src.add_fingerprint(usr)
 
 /obj/item/clothing/examine(mob/user)

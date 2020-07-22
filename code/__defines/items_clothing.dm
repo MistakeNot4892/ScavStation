@@ -58,33 +58,29 @@
 #define slot_back        1
 #define slot_wear_mask   2
 #define slot_handcuffed  3
-#define slot_l_hand      4
-#define slot_r_hand      5
-#define slot_belt        6
-#define slot_wear_id     7
-#define slot_l_ear       8
-#define slot_glasses     9
-#define slot_gloves      10
-#define slot_head        11
-#define slot_shoes       12
-#define slot_wear_suit   13
-#define slot_w_uniform   14
-#define slot_l_store     15
-#define slot_r_store     16
-#define slot_s_store     17
-#define slot_in_backpack 18
-#define slot_legcuffed   19
-#define slot_r_ear       20
-#define slot_legs        21
-#define slot_tie         22
-#define slot_last        22
+#define slot_belt        4
+#define slot_wear_id     5
+#define slot_l_ear       6
+#define slot_glasses     7
+#define slot_gloves      8
+#define slot_head        9
+#define slot_shoes       10
+#define slot_wear_suit   11
+#define slot_w_uniform   12
+#define slot_l_store     13
+#define slot_r_store     14
+#define slot_s_store     15
+#define slot_in_backpack 16
+#define slot_legcuffed   17
+#define slot_r_ear       18
+#define slot_legs        19
+#define slot_tie         20
+#define slot_last        21
 
 // Inventory slot strings.
 // since numbers cannot be used as associative list keys.
 //icon_back, icon_l_hand, etc would be much better names for these...
 #define slot_back_str		"slot_back"
-#define slot_l_hand_str		"slot_l_hand"
-#define slot_r_hand_str		"slot_r_hand"
 #define slot_w_uniform_str	"slot_w_uniform"
 #define slot_head_str		"slot_head"
 #define slot_wear_suit_str	"slot_suit"
@@ -222,9 +218,27 @@
 	8 - things that take up an entire turf, like wall girders or door assemblies
 */
 
+// Bodyparts - defined here as some are used for default onmob icon keys.
+
+// Limbs.
+#define BP_L_FOOT       "l_foot"
+#define BP_R_FOOT       "r_foot"
+#define BP_L_LEG        "l_leg"
+#define BP_R_LEG        "r_leg"
+#define BP_L_HAND       "l_hand"
+#define BP_R_HAND       "r_hand"
+#define BP_L_ARM        "l_arm"
+#define BP_R_ARM        "r_arm"
+#define BP_HEAD         "head"
+#define BP_CHEST        "chest"
+#define BP_GROIN        "groin"
+
+var/list/all_limb_tags = list(BP_CHEST, BP_GROIN, BP_HEAD, BP_L_ARM, BP_R_ARM, BP_L_HAND, BP_R_HAND, BP_L_LEG, BP_R_LEG, BP_L_FOOT, BP_R_FOOT)
+var/list/all_limb_tags_by_depth = list(BP_HEAD, BP_L_HAND, BP_R_HAND, BP_L_ARM, BP_R_ARM, BP_L_FOOT, BP_R_FOOT, BP_L_LEG, BP_R_LEG, BP_GROIN, BP_CHEST)
+
 var/list/default_onmob_icons = list(
-		slot_l_hand_str = 'icons/mob/onmob/items/lefthand.dmi',
-		slot_r_hand_str = 'icons/mob/onmob/items/righthand.dmi',
+		BP_L_HAND = 'icons/mob/onmob/items/lefthand.dmi',
+		BP_R_HAND = 'icons/mob/onmob/items/righthand.dmi',
 		slot_belt_str = 'icons/mob/onmob/onmob_belt.dmi',
 		slot_back_str = 'icons/mob/onmob/onmob_back.dmi',
 		slot_l_ear_str = 'icons/mob/onmob/onmob_ears.dmi',
