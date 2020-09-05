@@ -3,6 +3,11 @@
 	emote_message_3p = "USER burps."
 	message_type = AUDIBLE_MESSAGE
 
+/decl/emote/audible/Initialize()
+	. = ..()
+	if(!emote_radio_message)
+		emote_radio_message = emote_message_3p
+
 /decl/emote/audible/deathgasp_alien
 	key = "deathgasp"
 	emote_message_3p = "USER lets out a waning guttural screech, green blood bubbling from its maw."
