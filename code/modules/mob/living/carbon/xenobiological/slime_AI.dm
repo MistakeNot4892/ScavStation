@@ -1,353 +1,215 @@
-/mob/living/carbon/slime/proc/handle_regular_AI()
-	if(client)
+/datum/ai/slime
+	expected_type = /mob/living/slime
+	var/mood
+	var/chase_target = 0
+	var/mob/living/leader
+	var/mob/living/current_target // Currently attacking this mob (separate from feeding)
+	var/attacked = 0 // Determines if it's been attacked recently. Can be any number, is a cooloff-ish variable
+	var/rabid = 0 // If set to 1, the slime will attack and eat anything it comes in contact with
+	var/list/observed_friends // A list of refs to friends; they are not considered targets for feeding; passed down after splitting.
+	var/list/friendship_cooldown // A list of refs to friends and the next time they can increase friendship.
+	var/list/speech_buffer // Last phrase said near it and person who said it
+	var/mob/living/slime/slime
+	var/next_core_logic_run = 0
+	var/holding_still = 0 // AI variable, cooloff-ish for how long it's going to stay in one place
+
+/datum/ai/slime/New()
+	..()
+	slime = body
+
+/datum/ai/slime/Destroy()
+	observed_friends = null
+	friendship_cooldown = null
+	current_target = null
+	speech_buffer = null
+	slime = null
+	. = ..()
+
+/datum/ai/slime/proc/assess_target(var/mob/living/target)
+	if(!istype(target) || isslime(target) || ("\ref[target]" in observed_friends))
+		return FALSE
+	if(target.stat != DEAD && (rabid || attacked))
+		return TRUE
+	if(slime.check_valid_feed_target(target)) // Checks for those we want to eat
+		return TRUE
+	return FALSE
+
+/datum/ai/slime/proc/update_mood()
+	if(!slime || !body)
 		return
+	var/new_mood = prob(1) && pick("sad", ":3")
+	body.a_intent_change(I_HELP)
+	if(body.confused)
+		new_mood = "pout"
+	else if(rabid || attacked)
+		new_mood = "angry"
+		body.a_intent_change(I_HURT)
+	else if(current_target)
+		new_mood = "mischevous"
+	if(new_mood != mood)
+		mood = new_mood
+		body.regenerate_icons()
+
+/datum/ai/slime/do_process(time_elapsed)
+	. = ..()
 
 	if(attacked > 0)
-		if(attacked > 50)
-			attacked = 50 // Let's not get into absurdly long periods of rage
-		--attacked
+		attacked = Clamp(attacked--, 0, 50)
 
-	if(confused > 0)
-		--confused
+	if(!slime || !body || slime.confused)
 		return
 
-	if(nutrition < get_starve_nutrition()) // If a slime is starving, it starts losing its friends
-		if(Friends.len > 0 && prob(1))
-			var/mob/nofriend = pick(Friends)
-			if(nofriend && Friends[nofriend])
-				Friends[nofriend] -= 1
-				if (Friends[nofriend] <= 0)
-					Friends[nofriend] = null
-					Friends -= nofriend
-					Friends -= null
+	// A hungry slime begins losing its friends.
+	if(slime.nutrition < slime.get_starve_nutrition() && length(observed_friends) && prob(1))
+		adjust_friendship(pick(observed_friends), -1)
 
 	handle_targets()
-	if (!AIproc)
-		spawn()
-			handle_AI()
+	if(world.time >= next_core_logic_run)
+		handle_core_logic()
 	handle_speech_and_mood()
 
-/mob/living/carbon/slime/proc/handle_targets()
-	if(Victim) // If it's eating someone already, continue eating!
+/datum/ai/slime/proc/get_best_target(var/list/targets)
+	if(!length(targets))
+		return
+	if(rabid || attacked)
+		return pick(targets)
+	targets = shuffle(targets)
+	for(var/mob/living/M in targets)
+		if(issmall(M))
+			return M
+	. = targets[1]
+
+/datum/ai/slime/proc/handle_targets()
+
+	if(!slime || !body)
 		return
 
-	if(Target)
-		--target_patience
-		if (target_patience <= 0 || attacked || rabid) // Tired of chasing or attacking everything nearby
-			target_patience = 0
-			Target = null
-
-	var/hungry = 0 // determines if the slime is hungry
-
-	if (nutrition < get_starve_nutrition())
-		hungry = 2
-	else if (nutrition < get_grow_nutrition() && prob(25) || nutrition < get_hunger_nutrition())
-		hungry = 1
-
-	if(!Target)
-		if(will_hunt(hungry) || attacked || rabid) // Only add to the list if we need to
-			var/list/targets = list()
-
-			for(var/mob/living/L in view(7,src))
-				if(AssessTarget(L))
-					targets += L // Possible target found!
-
-			if(targets.len > 0)
-				if(attacked || rabid || hungry == 2)
-					Target = targets[1] // I am attacked and am fighting back or so hungry I don't even care
-				else
-					for(var/mob/living/carbon/C in targets)
-						if(ishuman(C) && prob(5))
-							Target = C
-							break
-
-						if(isalien(C) || issmall(C) || isanimal(C))
-							Target = C
-							break
-
-		if (Target)
-			target_patience = rand(5,7)
-			if (is_adult)
-				target_patience += 3
-
-	if(!Target) // If we have no target, we are wandering or following orders
-		if (Leader)
-			if (holding_still)
-				holding_still = max(holding_still - 1, 0)
-			else if(isturf(loc))
-				step_to(src, get_dir(src, Leader))
-
-		else if(hungry)
-			if (holding_still)
-				holding_still = max(holding_still - 1 - hungry, 0)
-			else if(isturf(loc) && prob(50))
-				SelfMove(pick(GLOB.cardinal))
-
-		else
-			if (holding_still)
-				holding_still = max(holding_still - 1, 0)
-			else if(isturf(loc) && prob(33))
-				SelfMove(pick(GLOB.cardinal))
-
-/mob/living/carbon/slime/proc/AssessTarget(var/mob/living/M)
-	if(isslime(M)) // Ignore other slimes
-		return 0
-
-	if(M in Friends) // Ignore friends
-		return 0
-
-	if(M.stat != DEAD) // Checks for those we just want to attack
-		if(rabid || attacked) // Will attack everything that isn't dead
-			return 1
-
-	if(!invalidFeedTarget(M)) // Checks for those we want to eat
-		return 1
-
-	return 0
-
-/mob/living/carbon/slime/proc/handle_AI()  // the master AI process
-	if(QDELETED(src) || stat == DEAD || client || Victim)
-		AIproc = 0
-		return // If we're dead or have a client, we don't need AI, if we're feeding, we continue feeding
-
-	if(confused)
-		AIproc = 0
+	if(slime.feeding_on)
+		current_target = null
 		return
 
-	AIproc = 1
-	var/addedDelay = 0
+	if(current_target)
+		chase_target--
+		if(chase_target <= 0 || attacked || rabid) // Tired of chasing or attacking everything nearby
+			chase_target = 0
+			current_target = null
 
-	if(amount_grown >= SLIME_EVOLUTION_THRESHOLD && !Target)
-		if(is_adult)
-			Reproduce()
-		else
-			Evolve()
-		AIproc = 0
+	var/hunger = slime.get_hunger_state()
+	if(!current_target)
+		var/feral = (attacked || rabid || hunger >= 2)
+		if(feral || (!leader && !holding_still) || (hunger && prob(10)))
+			var/list/targets
+			for(var/mob/living/prey in view(7, body))
+				if(assess_target(prey))
+					LAZYADD(targets, prey)
+			if(length(targets))
+				current_target = get_best_target(targets)
+				chase_target = rand(5,7)
+				if(slime.is_adult)
+					chase_target += 3
+
+	if(holding_still)
+		holding_still = max(holding_still - 1 - hunger, 0)
+	else if(isturf(body?.loc))
+		if(leader)
+			step_to(body, get_dir(body, leader))
+		else if(prob(hunger ? 50 : 33))
+			body.SelfMove(pick(GLOB.cardinal))
+
+/datum/ai/slime/proc/handle_core_logic()
+	set waitfor = FALSE
+
+	if(!slime || !body)
 		return
 
-	if(Target) // We're chasing the target
-		if(!AssessTarget(Target) || Target == Victim) // We don't need to chase them anymore
-			Target = null
-			AIproc = 0
-			return
-
-		for(var/mob/living/carbon/slime/M in view(1, Target))
-			if(M.Victim == Target)
-				Target = null
-				AIproc = 0
-				return
-
-		if(Target.Adjacent(src))
-			if(istype(Target, /mob/living/silicon)) // Glomp the silicons
-				a_intent = I_HURT
-				UnarmedAttack(Target)
-				addedDelay = 10
-
-			else if(Target.client && !Target.lying && prob(60 + powerlevel * 4)) // Try to take down the target first
-				a_intent = I_DISARM
-				UnarmedAttack(Target)
-				addedDelay = 10
-
-			else
-				a_intent = I_GRAB
-				if(invalidFeedTarget(Target))
-					a_intent = I_HURT //just glomp them instead
-					addedDelay = 10
-				UnarmedAttack(Target)
-
-		else if(Target in view(7, src))
-			step_to(src, Target)
-
+	var/added_delay = 0
+	if(slime.amount_grown >= SLIME_EVOLUTION_THRESHOLD && !current_target)
+		if(slime.is_adult)
+			slime.slime_split()
 		else
-			Target = null
-			AIproc = 0
-			return
-
+			slime.slime_mature()
+		added_delay = 10
 	else
-		var/mob/living/carbon/slime/frenemy
-		for (var/mob/living/carbon/slime/S in view(1, src))
-			if (S != src)
-				frenemy = S
-		if (frenemy && prob(1) && frenemy.Adjacent(src))
-			if (frenemy.colour == colour)
-				a_intent = I_HELP
+
+		if(!assess_target(current_target) || current_target == slime.feeding_on || !(current_target in view(7, body)))
+			current_target = null
+
+		if(!current_target)
+			if(prob(1))
+				for(var/mob/living/slime/frenemy in range(1, src))
+					if(frenemy != body && body.Adjacent(frenemy))
+						body.a_intent_change((frenemy.slime_type == slime.slime_type) ? I_HELP : I_HURT)
+						body.UnarmedAttack(frenemy)
+						added_delay = 10
+		else if(slime.Adjacent(current_target))
+			if(istype(current_target, /mob/living/silicon))
+				body.a_intent_change(I_HURT)
+			else if(current_target.client && !current_target.lying && prob(60 + slime.powerlevel * 4))
+				body.a_intent_change(I_DISARM)
 			else
-				a_intent = I_HURT
-			UnarmedAttack(frenemy)
+				body.a_intent_change(slime.check_valid_feed_target(current_target) ? I_GRAB : I_HURT)
+			body.UnarmedAttack(current_target)
+			added_delay = 10
+		else
+			step_to(body, current_target)
 
-	var/sleeptime = max(movement_delay(), 5) + addedDelay // Maximum one action per half a second
-	spawn (sleeptime)
-		handle_AI()
-	return
+	next_core_logic_run = world.time + max(body.movement_delay(), 5) + added_delay
 
-/mob/living/carbon/slime/proc/UpdateFace()
-	var/newmood = ""
-	a_intent = I_HELP
-	if(confused)
-		newmood = "pout"
-	else if(rabid || attacked)
-		newmood = "angry"
-		a_intent = I_HURT
-	else if(Target)
-		newmood = "mischevous"
+/datum/ai/slime/proc/handle_speech_and_mood()
+	set waitfor = FALSE
 
-	if (!newmood)
-		if (prob(1))
-			newmood = pick("sad", ":3")
+	if(!slime || !body)
+		return
 
-	if ((mood == "sad" || mood == ":3") && !newmood)
-		if (prob(75)) newmood = mood
+	update_mood()
 
-	if (newmood != mood) // This is so we don't redraw them every time
-		mood = newmood
-		regenerate_icons()
+	if(length(speech_buffer))
 
-/mob/living/carbon/slime/proc/handle_speech_and_mood()
-	set waitfor = FALSE // Called from Life, and say procs might sleep.
-	UpdateFace()
+		var/speaker = speech_buffer[1]       // Who said it?
+		var/spoken =  speech_buffer[speaker] // What did they say?
+		speech_buffer = null
 
-	//Speech understanding starts here
-	var/to_say
-	if (speech_buffer.len > 0)
-		var/who = speech_buffer[1] // Who said it?
-		var/phrase = speech_buffer[2] // What did they say?
-		if ((findtext(phrase, num2text(number)) || findtext(phrase, "slimes"))) // Talking to us
-			if (findtext(phrase, "hello") || findtext(phrase, "hi"))
-				to_say = pick("Hello...", "Hi...")
-			else if (findtext(phrase, "follow"))
-				if (Leader)
-					if (Leader == who) // Already following him
-						to_say = pick("Yes...", "Lead...", "Following...")
-					else if (Friends[who] > Friends[Leader]) // VIVA
-						Leader = who
-						to_say = "Yes... I follow [who]..."
-					else
-						to_say = "No... I follow [Leader]..."
-				else
-					if (Friends[who] > 2)
-						Leader = who
-						to_say = "I follow..."
-					else // Not friendly enough
-						to_say = pick("No...", "I won't follow...")
-			else if (findtext(phrase, "stop"))
-				if (Victim) // We are asked to stop feeding
-					if (Friends[who] > 4)
-						Victim = null
-						Target = null
-						if (Friends[who] < 7)
-							--Friends[who]
-							to_say = "Grrr..." // I'm angry but I do it
-						else
-							to_say = "Fine..."
-				else if (Target) // We are asked to stop chasing
-					if (Friends[who] > 3)
-						Target = null
-						if (Friends[who] < 6)
-							--Friends[who]
-							to_say = "Grrr..." // I'm angry but I do it
-						else
-							to_say = "Fine..."
-				else if (Leader) // We are asked to stop following
-					if (Leader == who)
-						to_say = "Yes... I'll stay..."
-						Leader = null
-					else
-						if (Friends[who] > Friends[Leader])
-							Leader = null
-							to_say = "Yes... I'll stop..."
-						else
-							to_say = "No... I'll keep following..."
-			else if (findtext(phrase, "stay"))
-				if (Leader)
-					if (Leader == who)
-						holding_still = Friends[who] * 10
-						to_say = "Yes... Staying..."
-					else if (Friends[who] > Friends[Leader])
-						holding_still = (Friends[who] - Friends[Leader]) * 10
-						to_say = "Yes... Staying..."
-					else
-						to_say = "No... I'll keep following..."
-				else
-					if (Friends[who] > 2)
-						holding_still = Friends[who] * 10
-						to_say = "Yes... Staying..."
-					else
-						to_say = "No... I won't stay..."
-		speech_buffer = list()
+		if(findtext(spoken, num2text(slime.number)) || findtext(spoken, "slimes"))
+			var/list/all_slime_commands = decls_repository.get_decls_of_subtype(/decl/slime_command)
+			for(var/command_type in all_slime_commands)
+				var/decl/slime_command/command = all_slime_commands[command_type]
+				var/response = command.resolve(speaker, spoken, src)
+				if(response)
+					body.say(response)
+					return
 
-	//Speech starts here
-	if (to_say)
-		say (to_say)
-	else if(prob(1))
-		emote(pick("bounce","sway","light","vibrate","jiggle"))
+	if(prob(1))
+		if(prob(50))
+			body.emote(pick("bounce","sway","light","vibrate","jiggle"))
+		else
+			var/list/possible_comments
+			var/list/all_slime_comments = decls_repository.get_decls_of_subtype(/decl/slime_comment)
+			for(var/comment_type in all_slime_comments)
+				var/decl/slime_comment/comment = all_slime_comments[comment_type]
+				var/comment_text = comment.get_comment(src)
+				if(comment_text)
+					LAZYADD(possible_comments, comment_text)
+			if(length(possible_comments))
+				body.say(pick(possible_comments))
+
+/datum/ai/slime/proc/adjust_friendship(var/atom/user, var/amount)
+	if(ismob(user))
+		if(QDELETED(user))
+			return FALSE
+		user = "\ref[user]"
+	else if(istext(user)) // verify the ref is still valid
+		user = locate(user)
+		if(!ismob(user) || QDELETED(user))
+			return FALSE
 	else
-		var/t = 10
-		var/slimes_near = -1 // Don't count myself
-		var/dead_slimes = 0
-		var/friends_near = list()
-		for (var/mob/living/carbon/M in view(7,src))
-			if (isslime(M))
-				++slimes_near
-				if (M.stat == DEAD)
-					++dead_slimes
-			if (M in Friends)
-				t += 20
-				friends_near += M
-		if (nutrition < get_hunger_nutrition()) t += 10
-		if (nutrition < get_starve_nutrition()) t += 10
-		if (prob(2) && prob(t))
-			var/phrases = list()
-			if (Target) phrases += "[Target]... looks tasty..."
-			if (nutrition < get_starve_nutrition())
-				phrases += "So... hungry..."
-				phrases += "Very... hungry..."
-				phrases += "Need... food..."
-				phrases += "Must... eat..."
-			else if (nutrition < get_hunger_nutrition())
-				phrases += "Hungry..."
-				phrases += "Where is the food?"
-				phrases += "I want to eat..."
-			phrases += "Rawr..."
-			phrases += "Blop..."
-			phrases += "Blorble..."
-			if (rabid || attacked)
-				phrases += "Hrr..."
-				phrases += "Nhuu..."
-				phrases += "Unn..."
-			if (mood == ":3")
-				phrases += "Purr..."
-			if (attacked)
-				phrases += "Grrr..."
-			if (getToxLoss() > 30)
-				phrases += "Cold..."
-			if (getToxLoss() > 60)
-				phrases += "So... cold..."
-				phrases += "Very... cold..."
-			if (getToxLoss() > 90)
-				phrases += "..."
-				phrases += "C... c..."
-			if (Victim)
-				phrases += "Nom..."
-				phrases += "Tasty..."
-			if (powerlevel > 3) phrases += "Bzzz..."
-			if (powerlevel > 5) phrases += "Zap..."
-			if (powerlevel > 8) phrases += "Zap... Bzz..."
-			if (mood == "sad") phrases += "Bored..."
-			if (slimes_near) phrases += "Brother..."
-			if (slimes_near > 1) phrases += "Brothers..."
-			if (dead_slimes) phrases += "What happened?"
-			if (!slimes_near)
-				phrases += "Lonely..."
-			for (var/M in friends_near)
-				phrases += "[M]... friend..."
-				if (nutrition < get_hunger_nutrition())
-					phrases += "[M]... feed me..."
-			say (pick(phrases))
+		return FALSE
 
-/mob/living/carbon/slime/proc/will_hunt(var/hunger) // Check for being stopped from feeding and chasing
-	if (hunger == 2 || rabid || attacked) return 1
-	if (Leader) return 0
-	if (holding_still) return 0
-	if (hunger == 1 || prob(25))
-		return 1
-	return 0
+	if(amount > 0)
+		if(world.time < LAZYACCESS(friendship_cooldown, user))
+			return FALSE
+		LAZYSET(friendship_cooldown, user, world.time + (1 MINUTE))
+	LAZYINITLIST(observed_friends)
+	observed_friends[user] = observed_friends[user] + amount
+	if(observed_friends[user] <= 0) 
+		LAZYREMOVE(observed_friends, user)
+	return TRUE

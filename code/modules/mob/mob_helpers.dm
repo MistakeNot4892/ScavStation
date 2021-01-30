@@ -720,3 +720,10 @@ var/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 	result[2] = ainvis
 
 	return result
+
+/mob/proc/check_cryopod_allowed()
+	for(var/mob/living/slime/M in range(1,src))
+		if(M.feeding_on == src)
+			to_chat(src, SPAN_WARNING("You're too busy getting your life sucked out of you."))
+			return FALSE
+	return TRUE

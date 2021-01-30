@@ -77,9 +77,6 @@ default behaviour is:
 				forceMove(tmob.loc)
 				tmob.forceMove(oldloc)
 				now_pushing = 0
-				for(var/mob/living/carbon/slime/slime in view(1,tmob))
-					if(slime.Victim == tmob)
-						slime.UpdateFeed()
 				return
 
 			if(!can_move_mob(tmob, 0, 0))
@@ -281,7 +278,7 @@ default behaviour is:
 	return
 
 /mob/living/proc/adjustCloneLoss(var/amount)
-	return
+	adjustBruteLoss(amount * 0.5)
 
 /mob/living/proc/getMaxHealth()
 	return maxHealth
@@ -513,17 +510,10 @@ default behaviour is:
 /mob/living/Move(a, b, flag)
 	if (buckled)
 		return
-
 	. = ..()
-
 	handle_grabs_after_move()
-
 	if (s_active && !( s_active in contents ) && get_turf(s_active) != get_turf(src))	//check !( s_active in contents ) first so we hopefully don't have to call get_turf() so much.
 		s_active.close(src)
-
-	if(update_slimes)
-		for(var/mob/living/carbon/slime/M in view(1,src))
-			M.UpdateFeed()
 
 /mob/living/verb/resist()
 	set name = "Resist"
@@ -866,3 +856,41 @@ default behaviour is:
 
 /mob/living/proc/get_ingested_reagents()
 	return reagents
+
+
+/mob/living/proc/handle_additional_slime_effects()
+	return
+
+/mob/living/proc/slime_feed_act()
+	var/protection = 1 - get_blocked_ratio(null, TOX, damage_flags = DAM_DISPERSED | DAM_BIO)
+	adjustCloneLoss(5 * protection)
+	adjustToxLoss(1 * protection)
+	if(health <= 0)
+		adjustToxLoss(1 * protection)
+	if(prob(15) && client)
+		handle_additional_slime_effects()
+	. = 20 * protection
+	if(getCloneLoss() >= maxHealth)
+		eaten_by_slime()
+
+/mob/living/proc/eaten_by_slime()
+	new /obj/effect/decal/cleanable/mucus(get_turf(src))
+	dump_contents()
+	qdel(src)
+
+/mob/living/carbon/human/eaten_by_slime()
+	if(length(organs) > 1)
+		var/obj/item/organ/external/E = pick(organs)
+		if(E.limb_flags & ORGAN_FLAG_CAN_AMPUTATE)
+			E.droplimb(FALSE, DROPLIMB_BURN)
+	if(length(organs) <= 1 && species.remains_type)
+		new species.remains_type(get_turf(src))
+		..()
+
+/mob/living/simple_animal/mouse/eaten_by_slime()
+	new /obj/item/remains/mouse(get_turf(src))
+	..()
+
+/mob/living/simple_animal/lizard/eaten_by_slime()
+	new /obj/item/remains/lizard(get_turf(src))
+	..()
