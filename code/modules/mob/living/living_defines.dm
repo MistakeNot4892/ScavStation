@@ -30,7 +30,6 @@
 	var/mob/living/cameraFollow = null
 	var/list/datum/action/actions = list()
 
-	var/update_slimes = 1
 	var/silent = null 		// Can't talk. Value goes down every life proc.
 	var/on_fire = 0 //The "Are we on fire?" var
 	var/fire_stacks
@@ -51,3 +50,5 @@
 
 	var/list/chem_effects
 	var/list/chem_doses
+	var/last_pain_message
+	var/next_pain_time = 0

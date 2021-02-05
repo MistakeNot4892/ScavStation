@@ -8,7 +8,7 @@
 		current.on_leaving_metabolism(parent, metabolism_class)
 	. = ..()
 
-/datum/reagents/metabolism/New(var/max = 100, mob/living/carbon/parent_mob, var/met_class)
+/datum/reagents/metabolism/New(var/max = 100, mob/living/parent_mob, var/met_class)
 	..(max, parent_mob)
 
 	metabolism_class = met_class

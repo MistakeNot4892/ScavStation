@@ -622,7 +622,7 @@ var/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 	return //Only for living/carbon/human/
 
 /mob/living/carbon/human/jittery_damage()
-	var/obj/item/organ/internal/heart/L = internal_organs_by_name[BP_HEART]
+	var/obj/item/organ/internal/heart/L = get_internal_organ(BP_HEART)
 	if(!istype(L))
 		return 0
 	if(BP_IS_PROSTHETIC(L))
@@ -720,3 +720,10 @@ var/list/intents = list(I_HELP,I_DISARM,I_GRAB,I_HURT)
 	result[2] = ainvis
 
 	return result
+
+/mob/proc/check_cryopod_allowed()
+	for(var/mob/living/slime/M in range(1,src))
+		if(M.feeding_on == src)
+			to_chat(src, SPAN_WARNING("You're too busy getting your life sucked out of you."))
+			return FALSE
+	return TRUE

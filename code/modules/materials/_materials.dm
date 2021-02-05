@@ -426,7 +426,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 					if(W.wet > 1 && slipperiness <= 0)
 						W.unwet_floor(FALSE)
 					W.clean_blood()
-					for(var/mob/living/carbon/slime/M in W)
+					for(var/mob/living/slime/M in W)
 						M.adjustToxLoss(rand(5, 10))
 
 	if(length(vapor_products))
@@ -436,7 +436,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 			T.assume_gas(vapor, (volume * vapor_products[vapor]), temperature)
 		holder.remove_reagent(type, volume)
 
-/decl/material/proc/on_mob_life(var/mob/living/carbon/M, var/alien, var/location, var/datum/reagents/holder) // Currently, on_mob_life is called on carbons. Any interaction with non-carbon mobs (lube) will need to be done in touch_mob.
+/decl/material/proc/on_mob_life(var/mob/living/M, var/alien, var/location, var/datum/reagents/holder) // Currently, on_mob_life is called on carbons. Any interaction with non-carbon mobs (lube) will need to be done in touch_mob.
 	if(QDELETED(src))
 		return // Something else removed us.
 	if(!istype(M))
@@ -482,7 +482,7 @@ INITIALIZE_IMMEDIATE(/obj/effect/gas_overlay)
 		var/dam = (toxicity * removed)
 		if(toxicity_targets_organ && ishuman(M))
 			var/mob/living/carbon/human/H = M
-			var/obj/item/organ/internal/I = H.internal_organs_by_name[toxicity_targets_organ]
+			var/obj/item/organ/internal/I = H.get_internal_organ(toxicity_targets_organ)
 			if(I)
 				var/can_damage = I.max_damage - I.damage
 				if(can_damage > 0)

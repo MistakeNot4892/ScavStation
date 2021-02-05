@@ -1,93 +1,78 @@
-/mob/living/carbon/slime
+/mob/living/slime
 	name = "baby slime"
-	icon = 'icons/mob/simple_animal/slimes.dmi'
-	icon_state = "grey baby slime"
+	icon = 'icons/mob/slimes/slime_baby.dmi'
+	icon_state = "slime"
 	pass_flags = PASS_FLAG_TABLE
 	speak_emote = list("chirps")
-
 	maxHealth = 150
 	health = 150
 	gender = NEUTER
-
 	update_icon = 0
-	nutrition = 800
-
 	see_in_dark = 8
-	update_slimes = 0
-
-	// canstun and canweaken don't affect slimes because they ignore stun and weakened variables
-	// for the sake of cleanliness, though, here they are.
 	status_flags = CANPARALYSE|CANPUSH
-
 	meat_type = null
 	meat_amount = 0
 	skin_material = null
 	skin_amount = 0
 	bone_material = null
 	bone_amount = 0
+	ai = /datum/ai/slime
 
-	var/toxloss = 0
-	var/is_adult = 0
-	var/number = 0 // Used to understand when someone is talking to it
-	var/cores = 1 // the number of /obj/item/slime_extract's the slime has left inside
+	var/is_adult = FALSE
 	var/mutation_chance = 30 // Chance of mutating, should be between 25 and 35
-
 	var/powerlevel = 0 // 0-10 controls how much electricity they are generating
 	var/amount_grown = 0 // controls how long the slime has been overfed, if 10, grows or reproduces
-
-	var/mob/living/Victim = null // the person the slime is currently feeding on
-	var/mob/living/Target = null // AI variable - tells the slime to hunt this down
-	var/mob/living/Leader = null // AI variable - tells the slime to follow this person
-
-	var/attacked = 0 // Determines if it's been attacked recently. Can be any number, is a cooloff-ish variable
-	var/rabid = 0 // If set to 1, the slime will attack and eat anything it comes in contact with
-	var/holding_still = 0 // AI variable, cooloff-ish for how long it's going to stay in one place
-	var/target_patience = 0 // AI variable, cooloff-ish for how long it's going to follow its target
-
-	var/list/Friends = list() // A list of friends; they are not considered targets for feeding; passed down after splitting
-
-	var/list/speech_buffer = list() // Last phrase said near it and person who said it
-
-	var/mood = "" // To show its face
-
-	var/AIproc = 0 // If it's 0, we need to launch an AI proc
-
+	var/mob/living/feeding_on
+	var/nutrition = 800
+	var/toxloss = 0
 	var/hurt_temperature = T0C-50 // slime keeps taking damage when its bodytemperature is below this
 	var/die_temperature = 50 // slime dies instantly when its bodytemperature is below this
-
-	var/colour = "grey"
-
+	var/number
+	var/slime_type = /decl/slime_colour/grey
+	var/cores = 1 // the number of /obj/item/slime_extract's the slime has left inside
 	var/core_removal_stage = 0 //For removing cores.
 	var/datum/reagents/metabolism/ingested
 
-/mob/living/carbon/slime/get_ingested_reagents()
-	return ingested
+/mob/living/slime/Destroy()
+	set_feeding_on()
+	. = ..()
 
-/mob/living/carbon/slime/getToxLoss()
+/mob/living/slime/getToxLoss()
 	return toxloss
 
-/mob/living/carbon/slime/get_digestion_product()
+/mob/living/slime/get_digestion_product()
 	return /decl/material/liquid/slimejelly
 
-/mob/living/carbon/slime/adjustToxLoss(var/amount)
+/mob/living/slime/adjustToxLoss(var/amount)
 	toxloss = Clamp(toxloss + amount, 0, maxHealth)
 
-/mob/living/carbon/slime/setToxLoss(var/amount)
+/mob/living/slime/setToxLoss(var/amount)
 	adjustToxLoss(amount-getToxLoss())
 
-/mob/living/carbon/slime/Initialize(mapload, var/colour="grey")
-	ingested = new(240, src, CHEM_INGEST)
-	verbs += /mob/living/proc/ventcrawl
+/mob/living/slime/Initialize(mapload, var/_stype = /decl/slime_colour/grey)
 
-	src.colour = colour
-	number = random_id(/mob/living/carbon/slime, 1, 1000)
-	name = "[colour] [is_adult ? "adult" : "baby"] slime ([number])"
-	real_name = name
-	mutation_chance = rand(25, 35)
-	regenerate_icons()
 	. = ..(mapload)
 
-/mob/living/carbon/slime/movement_delay()
+	ingested = new /datum/reagents/metabolism(240, src, CHEM_TOUCH)
+	reagents = ingested
+
+	verbs += /mob/living/proc/ventcrawl
+	slime_type = _stype
+
+	if(!ispath(slime_type, /decl/slime_colour))
+		crash_with("Slime initialized with non-decl slime type: [slime_type || "NULL"]")
+		return INITIALIZE_HINT_QDEL
+
+	number = random_id(/mob/living/slime, 1, 1000)
+	mutation_chance = rand(25, 35)
+	update_name()
+	regenerate_icons()
+
+/mob/living/slime/proc/update_name()
+	var/decl/slime_colour/slime_data = decls_repository.get_decl(slime_type)
+	SetName("[slime_data.name] [is_adult ? "adult" : "baby"] slime ([number])")
+
+/mob/living/slime/movement_delay()
 	if (bodytemperature >= 330.23) // 135 F
 		return -1	// slimes become supercharged at high temperatures
 
@@ -111,7 +96,7 @@
 
 	return tally + config.slime_delay
 
-/mob/living/carbon/slime/Bump(atom/movable/AM, yes)
+/mob/living/slime/Bump(atom/movable/AM, yes)
 	if ((!(yes) || now_pushing))
 		return
 	now_pushing = 1
@@ -148,7 +133,7 @@
 
 	..()
 
-/mob/living/carbon/slime/Stat()
+/mob/living/slime/Stat()
 	. = ..()
 
 	statpanel("Status")
@@ -165,20 +150,23 @@
 
 		stat(null,"Power Level: [powerlevel]")
 
-/mob/living/carbon/slime/adjustFireLoss(amount)
+/mob/living/slime/adjustFireLoss(amount)
 	..(-abs(amount)) // Heals them
 	return
 
-/mob/living/carbon/slime/bullet_act(var/obj/item/projectile/Proj)
-	attacked += 10
+/mob/living/slime/bullet_act(var/obj/item/projectile/Proj)
+	var/datum/ai/slime/slime_ai = ai
+	if(istype(slime_ai))
+		slime_ai.attacked += 10
+		slime_ai.adjust_friendship(Proj.firer, -5)
 	..(Proj)
 	return 0
 
-/mob/living/carbon/slime/emp_act(severity)
+/mob/living/slime/emp_act(severity)
 	powerlevel = 0 // oh no, the power!
 	..()
 
-/mob/living/carbon/slime/explosion_act(severity)
+/mob/living/slime/explosion_act(severity)
 	..()
 	switch(severity)
 		if(1)
@@ -191,119 +179,119 @@
 			adjustBruteLoss(30)
 			updatehealth()
 
-/mob/living/carbon/slime/u_equip(obj/item/W)
+/mob/living/slime/u_equip(obj/item/W)
 	SHOULD_CALL_PARENT(FALSE)
 	return FALSE
 
-/mob/living/carbon/slime/attack_ui(slot)
+/mob/living/slime/attack_ui(slot)
 	return
 
-/mob/living/carbon/slime/attack_hand(mob/living/carbon/human/M)
+/mob/living/slime/proc/set_confused(var/amt)
+	var/last_confused = confused
+	confused = max(confused, amt)
+	if(confused != last_confused && istype(ai, /datum/ai/slime))
+		var/datum/ai/slime/slime_ai = ai
+		slime_ai.update_mood()
 
-	..()
+/mob/living/slime/proc/adjust_friendship(var/mob/user, var/amount)
+	if(user && amount != 0)
+		var/datum/ai/slime/slime_ai = ai
+		if(istype(slime_ai))
+			return slime_ai.adjust_friendship(user, amount)
 
-	if(Victim)
-		if(Victim == M)
+/mob/living/slime/attack_hand(mob/living/carbon/human/user)
+
+	if(user.a_intent == I_HELP && stat != DEAD)
+		visible_message(SPAN_NOTICE("\The [user] pets \the [src]."))
+		adjust_friendship(user, rand(2,3))
+		return TRUE
+
+	if(feeding_on)
+		var/prey = feeding_on
+		if(feeding_on == user)
 			if(prob(60))
-				visible_message("<span class='warning'>\The [M] attempts to wrestle \the [src] off!</span>")
-				playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
-
+				visible_message(SPAN_DANGER("\The [user] fails to escape \the [src]!"))
 			else
-				visible_message("<span class='warning'>\The [M] manages to wrestle \the [src] off!</span>")
-				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-
-				confused = max(confused, 2)
-				Feedstop()
-				UpdateFace()
-				step_away(src, M)
-			return
-
+				visible_message(SPAN_DANGER("\The [user] manages to escape \the [src]!"))
+				set_feeding_on()
 		else
 			if(prob(30))
-				visible_message("<span class='warning'>\The [M] attempts to wrestle \the [src] off \the [Victim]!</span>")
-				playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
-
+				visible_message(SPAN_DANGER("\The [user] attempts to wrestle \the [src] off \the [feeding_on]!"))
 			else
-				visible_message("<span class='warning'>\The [M] manages to wrestle \the [src] off \the [Victim]!</span>")
-				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
+				visible_message(SPAN_DANGER("\The [user] manages to wrestle \the [src] off \the [feeding_on]!"))
+				set_feeding_on()
 
-				confused = max(confused, 2)
-				Feedstop()
-				UpdateFace()
-				step_away(src, M)
-			return
-
-	switch(M.a_intent)
-
-		if (I_HELP)
-			help_shake_act(M)
-
-		if (I_DISARM)
-			var/success = prob(40)
-			visible_message("<span class='warning'>\The [M] pushes \the [src]![success ? " \The [src] looks momentarily disoriented!" : ""]</span>")
-			if(success)
-				confused = max(confused, 2)
-				UpdateFace()
-				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
-			else
-				playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
-
+		if(prey != feeding_on)
+			playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
+			set_confused(2)
+			step_away(src, user)
 		else
+			playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
+		return TRUE
 
-			var/damage = rand(1, 9)
-
-			attacked += 10
-			if (prob(90))
-				if (MUTATION_HULK in M.mutations)
-					damage += 5
-					if(Victim || Target)
-						Feedstop()
-						Target = null
-					spawn(0)
-						step_away(src,M,15)
-						sleep(3)
-						step_away(src,M,15)
-
-				playsound(loc, "punch", 25, 1, -1)
-				visible_message("<span class='danger'>[M] has punched [src]!</span>", \
-						"<span class='danger'>[M] has punched [src]!</span>")
-
-				adjustBruteLoss(damage)
-				updatehealth()
+	switch(user.a_intent)
+		if(I_HELP)
+			visible_message(SPAN_NOTICE("\The [user] hugs \the [src] to make it feel better!"))
+			return TRUE
+		if(I_DISARM)
+			if(prob(40))
+				visible_message(SPAN_DANGER("\The [user] shoves \the [src] and it wobbles around, disoriented!"))
+				set_confused(2)
+				playsound(loc, 'sound/weapons/thudswoosh.ogg', 50, 1, -1)
 			else
+				visible_message(SPAN_DANGER("\The [user] shoves \the [src]!"))
 				playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
-				visible_message("<span class='danger'>[M] has attempted to punch [src]!</span>")
-	return
-
-/mob/living/carbon/slime/attackby(var/obj/item/W, var/mob/user)
-	if(W.force > 0)
-		attacked += 10
-		if(!(stat) && prob(25)) //Only run this check if we're alive or otherwise motile, otherwise surgery will be agonizing for xenobiologists.
-			to_chat(user, "<span class='danger'>\The [W] passes right through \the [src]!</span>")
-			return
-
+			return TRUE
+		if(I_HURT)
+			var/damage = rand(1, 9)
+			var/datum/ai/slime/slime_ai = ai
+			if(istype(slime_ai))
+				slime_ai.attacked += 10
+				slime_ai.adjust_friendship(user, -5)
+			if(prob(10))
+				playsound(loc, 'sound/weapons/punchmiss.ogg', 25, 1, -1)
+				visible_message(SPAN_DANGER("\The [user] has attempted to punch \the [src]!"))
+				return TRUE
+			if(MUTATION_HULK in user.mutations)
+				damage += 5
+				if(feeding_on)
+					set_feeding_on()
+				if(istype(slime_ai) && slime_ai.current_target)
+					slime_ai.current_target = null
+				throw_at(get_edge_target_turf(src, get_dir(user, src)), 2, 10, user, FALSE)
+			playsound(loc, "punch", 25, 1, -1)
+			visible_message(SPAN_DANGER("\The [user] has punched \the [src]!"))
+			adjustBruteLoss(damage)
+			return TRUE
 	. = ..()
 
-	if(Victim && prob(W.force * 5))
-		Feedstop()
+/mob/living/slime/attackby(var/obj/item/W, var/mob/user)
+	if(W.force > 0)
+		var/datum/ai/slime/slime_ai = ai
+		if(istype(slime_ai))
+			slime_ai.attacked += 10
+			slime_ai.adjust_friendship(user, -5)
+		if(stat == CONSCIOUS && prob(25)) //Only run this check if we're alive or otherwise motile, otherwise surgery will be agonizing for xenobiologists.
+			to_chat(user, SPAN_WARNING("\The [W] passes right through \the [src]!"))
+			return TRUE
+	. = ..()
+	if(feeding_on && prob(W.force * 5))
+		set_feeding_on()
 		step_away(src, user)
 
-/mob/living/carbon/slime/restrained()
+/mob/living/slime/restrained()
 	return 0
 
-/mob/living/carbon/slime/var/co2overloadtime = null
-/mob/living/carbon/slime/var/temperature_resistance = T0C+75
-
-/mob/living/carbon/slime/toggle_throw_mode()
+/mob/living/slime/toggle_throw_mode()
 	return
 
-/mob/living/carbon/slime/check_has_eyes()
+/mob/living/slime/check_has_eyes()
 	return FALSE
 
-/mob/living/carbon/slime/check_has_mouth()
+/mob/living/slime/check_has_mouth()
 	return 0
 
-/mob/living/carbon/slime/proc/gain_nutrition(var/amount)
+/mob/living/slime/proc/gain_nutrition(var/amount)
 	adjust_nutrition(amount)
 	if(prob(amount * 2)) // Gain around one level per 50 nutrition
 		powerlevel++
@@ -311,8 +299,17 @@
 			powerlevel = 10
 			adjustToxLoss(-10)
 
-/mob/living/carbon/slime/adjust_nutrition(var/amt)
+/mob/living/slime/adjust_nutrition(var/amt)
 	nutrition = Clamp(nutrition + amt, 0, get_max_nutrition())
-/mob/living/carbon/slime/can_be_buckled(var/mob/user)
+
+/mob/living/slime/proc/get_hunger_state()
+	. = 0
+	if (nutrition < get_starve_nutrition())
+		. += 2
+	else if((nutrition < get_grow_nutrition() && prob(25)) || nutrition < get_hunger_nutrition())
+		. += 1
+
+/mob/living/slime/can_be_buckled(var/mob/user)
 	to_chat(user, SPAN_WARNING("\The [src] is too squishy to buckle in."))
 	return FALSE
+

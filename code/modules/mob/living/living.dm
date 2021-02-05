@@ -77,9 +77,6 @@ default behaviour is:
 				forceMove(tmob.loc)
 				tmob.forceMove(oldloc)
 				now_pushing = 0
-				for(var/mob/living/carbon/slime/slime in view(1,tmob))
-					if(slime.Victim == tmob)
-						slime.UpdateFeed()
 				return
 
 			if(!can_move_mob(tmob, 0, 0))
@@ -178,6 +175,10 @@ default behaviour is:
 		src.adjustBrainLoss(src.health + src.maxHealth * 2) // Deal 2x health in BrainLoss damage, as before but variable.
 		updatehealth()
 		to_chat(src, "<span class='notice'>You have given up life and succumbed to death.</span>")
+
+/mob/living/proc/update_body(var/update_icons=1)
+	if(update_icons)
+		queue_icon_update()
 
 /mob/living/proc/updatehealth()
 	if(status_flags & GODMODE)
@@ -281,7 +282,7 @@ default behaviour is:
 	return
 
 /mob/living/proc/adjustCloneLoss(var/amount)
-	return
+	adjustBruteLoss(amount * 0.5)
 
 /mob/living/proc/getMaxHealth()
 	return maxHealth
@@ -475,7 +476,7 @@ default behaviour is:
 /mob/living/carbon/basic_revival(var/repair_brain = TRUE)
 	if(repair_brain && should_have_organ(BP_BRAIN))
 		repair_brain = FALSE
-		var/obj/item/organ/internal/brain/brain = internal_organs_by_name[BP_BRAIN]
+		var/obj/item/organ/internal/brain/brain = get_internal_organ(BP_BRAIN)
 		if(brain.damage > (brain.max_damage/2))
 			brain.damage = (brain.max_damage/2)
 		if(brain.status & ORGAN_DEAD)
@@ -513,17 +514,10 @@ default behaviour is:
 /mob/living/Move(a, b, flag)
 	if (buckled)
 		return
-
 	. = ..()
-
 	handle_grabs_after_move()
-
 	if (s_active && !( s_active in contents ) && get_turf(s_active) != get_turf(src))	//check !( s_active in contents ) first so we hopefully don't have to call get_turf() so much.
 		s_active.close(src)
-
-	if(update_slimes)
-		for(var/mob/living/carbon/slime/M in view(1,src))
-			M.UpdateFeed()
 
 /mob/living/verb/resist()
 	set name = "Resist"
@@ -766,6 +760,11 @@ default behaviour is:
 
 /mob/living/fluid_act(var/datum/reagents/fluids)
 	..()
+	var/datum/reagents/touching = get_touching_reagents()
+	if(touching)
+		var/saturation =  min(fluids.total_volume, round(mob_size * 1.5 * reagent_permeability()) - touching.total_volume)
+		if(saturation > 0)
+			fluids.trans_to_holder(touching, saturation)
 	for(var/thing in get_equipped_items(TRUE))
 		if(isnull(thing)) continue
 		var/atom/movable/A = thing
@@ -866,3 +865,55 @@ default behaviour is:
 
 /mob/living/proc/get_ingested_reagents()
 	return reagents
+
+/mob/living/proc/get_injected_reagents()
+	return reagents
+
+/mob/living/proc/get_touching_reagents()
+	return reagents
+
+/mob/living/proc/get_species()
+	return
+
+/mob/living/proc/should_have_organ(var/organ_check)
+	return FALSE
+
+/mob/living/proc/handle_additional_slime_effects()
+	return
+
+/mob/living/proc/slime_feed_act(var/mob/living/slime/attacker)
+	var/protection = (1 - get_blocked_ratio(null, TOX, damage_flags = DAM_DISPERSED | DAM_BIO))
+	adjustCloneLoss((attacker.is_adult ? 10 : 5) * protection)
+	adjustToxLoss(1 * protection)
+	if(health <= 0)
+		adjustToxLoss(1 * protection)
+	if(prob(15) && client)
+		handle_additional_slime_effects()
+	. = 10 * protection
+	if(stat == DEAD || getCloneLoss() >= maxHealth)
+		eaten_by_slime()
+
+/mob/living/proc/eaten_by_slime()
+	new /obj/effect/decal/cleanable/mucus(get_turf(src))
+	dump_contents()
+	qdel(src)
+
+/mob/living/carbon/human/eaten_by_slime()
+	if(length(organs) > 1)
+		var/obj/item/organ/external/E = pick(organs)
+		if(E.limb_flags & ORGAN_FLAG_CAN_AMPUTATE)
+			E.droplimb(FALSE, DROPLIMB_ACID)
+	if(length(organs) <= 1 && species.remains_type)
+		new species.remains_type(get_turf(src))
+		..()
+
+/mob/living/simple_animal/mouse/eaten_by_slime()
+	new /obj/item/remains/mouse(get_turf(src))
+	..()
+
+/mob/living/simple_animal/lizard/eaten_by_slime()
+	new /obj/item/remains/lizard(get_turf(src))
+	..()
+
+/mob/living/proc/get_adjusted_metabolism(metabolism)
+	. = metabolism

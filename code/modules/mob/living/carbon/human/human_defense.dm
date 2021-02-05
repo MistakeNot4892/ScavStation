@@ -443,3 +443,6 @@ meteor_act
 	if (was_burned)
 		fire_act(air, temperature)
 	return FALSE
+
+/mob/living/carbon/human/handle_additional_slime_effects()
+	custom_pain(pick(global.slime_pain_messages),100)

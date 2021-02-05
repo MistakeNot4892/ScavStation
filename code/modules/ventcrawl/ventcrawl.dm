@@ -40,8 +40,8 @@ var/list/ventcrawl_machinery = list(
 		remove_ventcrawl()
 		add_ventcrawl(loc)
 
-/mob/living/carbon/slime/can_ventcrawl()
-	if(Victim)
+/mob/living/slime/can_ventcrawl()
+	if(feeding_on)
 		to_chat(src, SPAN_WARNING("You cannot ventcrawl while feeding."))
 		return FALSE
 	. = ..()
@@ -54,7 +54,7 @@ var/list/ventcrawl_machinery = list(
 	return (carried_item in internal_organs) || ..()
 
 /mob/living/carbon/human/is_allowed_vent_crawl_item(var/obj/item/carried_item)
-	var/obj/item/organ/internal/stomach/stomach = internal_organs_by_name[BP_STOMACH]
+	var/obj/item/organ/internal/stomach/stomach = get_internal_organ(BP_STOMACH)
 	if(stomach && (carried_item in stomach.contents))
 		return TRUE
 	if(carried_item in organs)

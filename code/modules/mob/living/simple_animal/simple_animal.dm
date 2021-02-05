@@ -16,6 +16,7 @@
 	skin_material = /decl/material/solid/skin 
 	skin_amount = 5
 
+	var/gene_damage
 	var/show_stat_health = 1	//does the percentage health show in the stat panel for the mob
 
 	var/icon_living = ""
@@ -528,3 +529,14 @@
 	if(ispath(natural_weapon))
 		natural_weapon = new natural_weapon(src)
 	return natural_weapon
+
+/mob/living/simple_animal/getCloneLoss()
+	. = gene_damage
+
+/mob/living/simple_animal/setCloneLoss(amount)
+	gene_damage = Clamp(amount, 0, maxHealth)
+	if(gene_damage >= maxHealth)
+		death()
+
+/mob/living/simple_animal/adjustCloneLoss(var/amount)
+	setCloneLoss(gene_damage + amount)

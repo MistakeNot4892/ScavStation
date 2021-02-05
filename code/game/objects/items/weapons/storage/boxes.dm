@@ -646,3 +646,41 @@
 /obj/item/storage/box/parts_pack/keyboard
 	icon_state = "keyboard"
 	startswith = list(/obj/item/stock_parts/keyboard = 7)
+
+/obj/item/storage/box/mice
+	name = "mouse cage"
+	icon_state = "cage"
+	w_class = ITEM_SIZE_NO_CONTAINER
+	max_w_class = ITEM_SIZE_SMALL
+
+/obj/item/storage/box/mice/Initialize()
+	. = ..()
+	can_hold = typesof(/obj/item/holder)
+	for(var/i = 1 to 14)
+		var/obj/item/holder/mouse/squeak = new(src)
+		squeak.sync(new /mob/living/simple_animal/mouse/white(squeak))
+	make_exact_fit()
+	update_icon()
+
+/obj/item/storage/box/mice/Move()
+	. = ..()
+	pixel_x = 0
+	pixel_y = 0
+
+/obj/item/storage/box/mice/on_update_icon()
+	cut_overlays()
+	for(var/obj/item/holder/H in src)
+		var/image/I = image(null)
+		I.appearance = H
+		I.plane = plane
+		I.layer = FLOAT_LAYER
+		I.pixel_y = rand(-6, 2)
+		I.pixel_x = rand(0, 10)-4
+		add_overlay(I)
+	add_overlay("[icon_state]_lid")
+
+/obj/item/storage/box/mice/attack_hand(mob/user)
+	if(user)
+		open(user)
+		add_fingerprint(user)
+	return TRUE

@@ -397,16 +397,10 @@
 /mob/living/carbon/proc/can_devour(atom/movable/victim)
 	return FALSE
 
-/mob/living/carbon/proc/should_have_organ(var/organ_check)
-	return 0
-
-/mob/living/carbon/proc/can_feel_pain(var/check_organ)
+/mob/living/carbon/can_feel_pain(var/check_organ)
 	if(isSynthetic())
-		return 0
+		return FALSE
 	return !(species && species.species_flags & SPECIES_FLAG_NO_PAIN)
-
-/mob/living/carbon/proc/get_adjusted_metabolism(metabolism)
-	return metabolism
 
 /mob/living/carbon/proc/need_breathe()
 	return
@@ -473,9 +467,8 @@
 /mob/living/carbon/has_dexterity(var/dex_level)
 	. = ..() && (species.get_manual_dexterity() >= dex_level)
 
-/mob/living/carbon/fluid_act(var/datum/reagents/fluids)
-	var/saturation =  min(fluids.total_volume, round(mob_size * 1.5 * reagent_permeability()) - touching.total_volume)
-	if(saturation > 0)
-		fluids.trans_to_holder(touching, saturation)
-	if(fluids.total_volume)
-		..()
+/mob/living/carbon/get_species()
+	return species
+
+/mob/living/carbon/get_species_name()
+	return species.name

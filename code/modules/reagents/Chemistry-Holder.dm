@@ -368,25 +368,27 @@ GLOBAL_DATUM_INIT(temp_reagents_holder, /obj, new)
 		perm = L.reagent_permeability()
 	return trans_to_mob(target, amount * perm, CHEM_TOUCH, 1, copy)
 
-/datum/reagents/proc/trans_to_mob(var/mob/target, var/amount = 1, var/type = CHEM_INJECT, var/multiplier = 1, var/copy = 0) // Transfer after checking into which holder...
-	if(!target || !istype(target) || !target.simulated)
+/datum/reagents/proc/trans_to_mob(var/mob/living/target, var/amount = 1, var/type = CHEM_INJECT, var/multiplier = 1, var/copy = 0) // Transfer after checking into which holder...
+	if(!istype(target) || !target.simulated)
 		return
-	if(iscarbon(target))
-		var/mob/living/carbon/C = target
-		if(type == CHEM_INJECT)
-			var/datum/reagents/R = C.reagents
-			return trans_to_holder(R, amount, multiplier, copy)
-		if(type == CHEM_INGEST)
-			var/datum/reagents/R = C.get_ingested_reagents()
-			return C.ingest(src, R, amount, multiplier, copy) //perhaps this is a bit of a hack, but currently there's no common proc for eating reagents
-		if(type == CHEM_TOUCH)
-			var/datum/reagents/R = C.touching
-			return trans_to_holder(R, amount, multiplier, copy)
-	else
-		var/datum/reagents/R = new /datum/reagents(amount, GLOB.temp_reagents_holder)
-		. = trans_to_holder(R, amount, multiplier, copy, 1)
-		R.touch_mob(target)
-		qdel(R)
+
+	var/datum/reagents/transfer_to
+	if(type == CHEM_INGEST)
+		transfer_to = target.get_ingested_reagents()
+		if(iscarbon(target))
+			var/mob/living/carbon/C = target
+			return C.ingest(src, transfer_to, amount, multiplier, copy)
+	else if(type == CHEM_INJECT)
+		transfer_to = target.get_injected_reagents()
+	else if(type == CHEM_TOUCH)
+		transfer_to = target.get_touching_reagents()
+
+	if(transfer_to)
+		return trans_to_holder(transfer_to, amount, multiplier, copy)
+	var/datum/reagents/R = new /datum/reagents(amount, GLOB.temp_reagents_holder)
+	. = trans_to_holder(R, amount, multiplier, copy, 1)
+	R.touch_mob(target)
+	qdel(R)
 
 /datum/reagents/proc/trans_to_turf(var/turf/target, var/amount = 1, var/multiplier = 1, var/copy = 0) // Turfs don't have any reagents (at least, for now). Just touch it.
 	if(!target || !target.simulated)
