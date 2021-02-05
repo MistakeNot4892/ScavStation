@@ -9,7 +9,7 @@
 /decl/surgery_step/slime
 	allowed_species = null
 	disallowed_species = null
-	expected_mob_type = /mob/living/carbon/slime
+	expected_mob_type = /mob/living/slime
 	hidden_from_codex = TRUE
 	surgery_step_category = /decl/surgery_step/slime
 

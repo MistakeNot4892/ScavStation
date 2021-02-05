@@ -760,6 +760,11 @@ default behaviour is:
 
 /mob/living/fluid_act(var/datum/reagents/fluids)
 	..()
+	var/datum/reagents/touching = get_touching_reagents()
+	if(touching)
+		var/saturation =  min(fluids.total_volume, round(mob_size * 1.5 * reagent_permeability()) - touching.total_volume)
+		if(saturation > 0)
+			fluids.trans_to_holder(touching, saturation)
 	for(var/thing in get_equipped_items(TRUE))
 		if(isnull(thing)) continue
 		var/atom/movable/A = thing
@@ -861,6 +866,12 @@ default behaviour is:
 /mob/living/proc/get_ingested_reagents()
 	return reagents
 
+/mob/living/proc/get_injected_reagents()
+	return reagents
+
+/mob/living/proc/get_touching_reagents()
+	return reagents
+
 /mob/living/proc/get_species()
 	return
 
@@ -870,16 +881,16 @@ default behaviour is:
 /mob/living/proc/handle_additional_slime_effects()
 	return
 
-/mob/living/proc/slime_feed_act()
-	var/protection = 1 - get_blocked_ratio(null, TOX, damage_flags = DAM_DISPERSED | DAM_BIO)
-	adjustCloneLoss(5 * protection)
+/mob/living/proc/slime_feed_act(var/mob/living/slime/attacker)
+	var/protection = (1 - get_blocked_ratio(null, TOX, damage_flags = DAM_DISPERSED | DAM_BIO))
+	adjustCloneLoss((attacker.is_adult ? 10 : 5) * protection)
 	adjustToxLoss(1 * protection)
 	if(health <= 0)
 		adjustToxLoss(1 * protection)
 	if(prob(15) && client)
 		handle_additional_slime_effects()
-	. = 20 * protection
-	if(getCloneLoss() >= maxHealth)
+	. = 10 * protection
+	if(stat == DEAD || getCloneLoss() >= maxHealth)
 		eaten_by_slime()
 
 /mob/living/proc/eaten_by_slime()
@@ -891,7 +902,7 @@ default behaviour is:
 	if(length(organs) > 1)
 		var/obj/item/organ/external/E = pick(organs)
 		if(E.limb_flags & ORGAN_FLAG_CAN_AMPUTATE)
-			E.droplimb(FALSE, DROPLIMB_BURN)
+			E.droplimb(FALSE, DROPLIMB_ACID)
 	if(length(organs) <= 1 && species.remains_type)
 		new species.remains_type(get_turf(src))
 		..()
@@ -903,3 +914,6 @@ default behaviour is:
 /mob/living/simple_animal/lizard/eaten_by_slime()
 	new /obj/item/remains/lizard(get_turf(src))
 	..()
+
+/mob/living/proc/get_adjusted_metabolism(metabolism)
+	. = metabolism

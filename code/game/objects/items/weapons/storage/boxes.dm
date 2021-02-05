@@ -662,6 +662,11 @@
 	make_exact_fit()
 	update_icon()
 
+/obj/item/storage/box/mice/Move()
+	. = ..()
+	pixel_x = 0
+	pixel_y = 0
+
 /obj/item/storage/box/mice/on_update_icon()
 	cut_overlays()
 	for(var/obj/item/holder/H in src)
@@ -669,12 +674,13 @@
 		I.appearance = H
 		I.plane = plane
 		I.layer = FLOAT_LAYER
-		I.pixel_y += rand(-6, 2)
-		I.pixel_x += rand(0, 10)-4
+		I.pixel_y = rand(-6, 2)
+		I.pixel_x = rand(0, 10)-4
 		add_overlay(I)
 	add_overlay("[icon_state]_lid")
 
 /obj/item/storage/box/mice/attack_hand(mob/user)
-	open(user)
-	add_fingerprint(user)
+	if(user)
+		open(user)
+		add_fingerprint(user)
 	return TRUE

@@ -59,12 +59,18 @@
 		qdel(organ)
 	return ..()
 
+/mob/living/carbon/human/get_injected_reagents()
+	return bloodstr
+
+/mob/living/carbon/human/get_touching_reagents()
+	return touching
+
 /mob/living/carbon/human/get_ingested_reagents()
 	if(should_have_organ(BP_STOMACH))
 		var/obj/item/organ/internal/stomach/stomach = get_internal_organ(BP_STOMACH)
 		if(stomach)
 			return stomach.ingested
-	return touching // Kind of a shitty hack, but makes more sense to me than digesting them.
+	return get_touching_reagents() // Kind of a shitty hack, but makes more sense to me than digesting them.
 
 /mob/living/carbon/human/proc/metabolize_ingested_reagents()
 	if(should_have_organ(BP_STOMACH))

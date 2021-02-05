@@ -23,25 +23,19 @@
 	var/powerlevel = 0 // 0-10 controls how much electricity they are generating
 	var/amount_grown = 0 // controls how long the slime has been overfed, if 10, grows or reproduces
 	var/mob/living/feeding_on
-	var/datum/reagents/metabolism/ingested
-
 	var/nutrition = 800
 	var/toxloss = 0
 	var/hurt_temperature = T0C-50 // slime keeps taking damage when its bodytemperature is below this
 	var/die_temperature = 50 // slime dies instantly when its bodytemperature is below this
-
 	var/number
 	var/slime_type = /decl/slime_colour/grey
-
 	var/cores = 1 // the number of /obj/item/slime_extract's the slime has left inside
 	var/core_removal_stage = 0 //For removing cores.
+	var/datum/reagents/metabolism/ingested
 
 /mob/living/slime/Destroy()
 	set_feeding_on()
 	. = ..()
-
-/mob/living/slime/get_ingested_reagents()
-	return ingested
 
 /mob/living/slime/getToxLoss()
 	return toxloss
@@ -59,7 +53,9 @@
 
 	. = ..(mapload)
 
-	ingested = new(240, src, CHEM_INGEST)
+	ingested = new /datum/reagents/metabolism(240, src, CHEM_TOUCH)
+	reagents = ingested
+
 	verbs += /mob/living/proc/ventcrawl
 	slime_type = _stype
 
@@ -313,7 +309,7 @@
 	else if((nutrition < get_grow_nutrition() && prob(25)) || nutrition < get_hunger_nutrition())
 		. += 1
 
-/mob/living/carbon/slime/can_be_buckled(var/mob/user)
+/mob/living/slime/can_be_buckled(var/mob/user)
 	to_chat(user, SPAN_WARNING("\The [src] is too squishy to buckle in."))
 	return FALSE
 

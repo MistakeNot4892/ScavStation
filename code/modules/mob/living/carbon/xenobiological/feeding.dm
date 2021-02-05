@@ -27,11 +27,11 @@
 	if(M.stat == DEAD)
 		to_chat(src, SPAN_WARNING("\The [src] is dead."))
 		return FALSE
-	if(iscarbon(M) && M.getCloneLoss() >= M.maxHealth * 1.5)
+	if(M.getCloneLoss() >= M.maxHealth * 1.5)
 		to_chat(src, SPAN_WARNING("\The [M] is too degraded to feed upon."))
 		return FALSE
-	for(var/mob/living/slime/met in view())
-		if(met.feeding_on == M)
+	for(var/mob/living/slime/met in range(1, get_turf(M)))
+		if(met != src && met.feeding_on == M)
 			to_chat(src, SPAN_WARNING("\The [met] is already feeding on \the [M]."))
 			return FALSE
 	return TRUE
@@ -78,7 +78,7 @@
 		set_feeding_on()
 		return FALSE
 
-	var/drained = feeding_on.slime_feed_act()
+	var/drained = feeding_on.slime_feed_act(src)
 	if(!drained)
 		set_feeding_on()
 		return FALSE
